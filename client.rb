@@ -144,8 +144,9 @@ when 'upload'
   )
 when 'download'
   client = EncryptedS3EnvDownloader.new(options[:alias])
+  data = client.download!(options[:bucket], options[:key])
   puts OUT_BEGIN
-  puts client.download!(options[:bucket], options[:key])
+  puts data
   puts OUT_END
 else
   LOGGER.error "Error: No action implemented for action: #{action}"
