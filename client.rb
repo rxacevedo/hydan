@@ -15,6 +15,8 @@ require 'pp'
 # Debug
 require 'pry'
 
+require './kms_encrypt.rb'
+
 LOGGER                = Logger.new(STDOUT)
 LOGGER.level          = Logger::DEBUG
 
@@ -24,6 +26,7 @@ AWS_PROFILE           = 'terraform-qa'.freeze
 AWS_ACCESS_KEY_ID     = ''.freeze
 AWS_SECRET_ACCESS_KEY = ''.freeze
 
+VALID_ACTIONS = ['encrypt','decrypt','upload','download'].freeze
 OUT_BEGIN = '-----BEGIN S3 OBJECT OUTPUT-----'.freeze
 OUT_END  =  '-----END S3 OBJECT OUTPUT-----'.freeze
 
@@ -92,18 +95,6 @@ class EncryptedS3EnvDownloader < EncryptedS3EnvClient
   end
 end
 
-# If bucket and key are present but file is not, it signifies a
-# download/decrypt operation
-#
-# - Client should be able to encrypt files without uploading them
-# - Client should be able to decrypt local files
-# - Client should be able to download files without decrypting them
-# - Client should support file encryption and line encryption
-# - Client should support encrypting data on STDIN
-# - Client should implement encrypt/upload and decrypt/download
-#   such that they can be chained, i.e.:
-#   ./client.rb encrypt | ./client.rb upload
-
 options = {}
 OptionParser.new do |opts|
   opts.banner = 'Usage: encrypt.rb [options]'
@@ -122,32 +113,41 @@ OptionParser.new do |opts|
   opts.on('-k KEY', '--key KEY', 'The key/prefix in the S3 bucket') do |k|
     options[:key] = k
   end
+  opts.on('--plaintext TEXT', 'Plaintext to be encrypted') do |p|
+    options[:plaintext] = p
+  end
   opts.on('-h', '--help') do
     puts opts
     exit
   end
 end.parse!
 
-# This will only grab the first one, if you specify both
-# then you're doing it wrong anyways
-action = ARGV.find { |arg| arg == 'upload' || arg == 'download' }
+action = ARGV.find { |arg| VALID_ACTIONS.include? arg }
+
+LOGGER.debug "Action: #{action}, class: #{action.class}"
 
 case action
 when 'encrypt'
+  client = KMSEncryptionHelper.new
+  ciphertext = client.encrypt(options[:plaintext], options[:alias])
+  puts ciphertext
 when 'decrypt'
+  puts 'DISABLED'
 when 'upload'
-  client = EncryptedS3EnvUploader.new(options[:alias])
-  client.upload!(
-    File.open(options[:file], 'r').read,
-    options[:bucket],
-    options[:key]
-  )
+  puts 'DISABLED'
+  # client = EncryptedS3EnvUploader.new(options[:alias])
+  # client.upload!(
+  #   File.open(options[:file], 'r').read,
+  #   options[:bucket],
+  #   options[:key]
+  # )
 when 'download'
-  client = EncryptedS3EnvDownloader.new(options[:alias])
-  data = client.download!(options[:bucket], options[:key])
-  puts OUT_BEGIN
-  puts data
-  puts OUT_END
+  puts 'DISABLED'
+  # client = EncryptedS3EnvDownloader.new(options[:alias])
+  # data = client.download!(options[:bucket], options[:key])
+  # puts OUT_BEGIN
+  # puts data
+  # puts OUT_END
 else
   LOGGER.error "Error: No action implemented for action: #{action}"
 end
