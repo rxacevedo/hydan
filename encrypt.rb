@@ -13,7 +13,7 @@ require 'optparse'
 require 'pp'
 
 # Debug
-require 'pry' 
+require 'pry'
 
 LOGGER                = Logger.new(STDOUT)
 LOGGER.level          = Logger::DEBUG
@@ -31,7 +31,8 @@ class EncryptedS3EnvClient
   attr_accessor :s3, :kms
 
   # Set up AWS credentials
-  def initialize(kms_alias = nil)
+  def initialize(key_alias)
+    puts "Initializing BASE..."
     unless ENV['AWS_ACCESS_KEY_ID'] && ENV['AWS_SECRET_ACCESS_KEY']
       Aws.config.update({
         region: AWS_REGION,
@@ -40,7 +41,7 @@ class EncryptedS3EnvClient
       })
     end
     kms_init!
-    s3_init!(kms_alias, @kms)
+    s3_init!(key_alias, @kms)
   end
 
   # Initializes the KMS client
@@ -56,9 +57,7 @@ class EncryptedS3EnvClient
     LOGGER.debug "Key alias: #{key_alias}, key id: #{key_id}"
     key_id
   end
-end
-
-class EncryptedS3EnvUploader < EncryptedS3EnvClient
+  
   # Initializes the S3 client and the encrypted wrapper
   def s3_init!(kms_alias, kms_client)
     kms_key_id = kms_get_key(kms_alias)
@@ -69,11 +68,12 @@ class EncryptedS3EnvUploader < EncryptedS3EnvClient
       kms_client: kms_client,
     )
   end
+end
 
+class EncryptedS3EnvUploader < EncryptedS3EnvClient
   # Uploads the file using the encrypted uploader
   # (currently without SSE)
   def upload!(body, bucket, key)
-    pp @s3_enc
     @s3_enc.put_object(
       bucket: bucket,
       key:  key,
@@ -83,12 +83,6 @@ class EncryptedS3EnvUploader < EncryptedS3EnvClient
 end
 
 class EncryptedS3EnvDownloader < EncryptedS3EnvClient
-  # Initializes the S3 client and the encrypted wrapper
-  def s3_init!
-    @s3 = Aws::S3::Client.new(region: AWS_REGION)
-    @s3_enc = Aws::S3::Encryption::Client.new(client: @s3)
-  end
-
   def download!(bucket, key)
     response = @s3_enc.get_object(bucket: bucket, key: key)
     response.body.string
@@ -134,7 +128,9 @@ when 'upload'
   )
 when 'download'
   client = EncryptedS3EnvDownloader.new(options[:alias])
+  puts '-----BEGIN S3 OBJECT OUTPUT-----'
   puts client.download!(options[:bucket], options[:key])
+  puts '-----END S3 OBJECT OUTPUT-----'
 else
   LOGGER.error "Error: No action implemented for action: #{action}"
 end
