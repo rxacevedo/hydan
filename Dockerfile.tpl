@@ -1,11 +1,10 @@
-FROM ruby:2.1
+FROM ruby:#VERSION#
 MAINTAINER "rxacevedo@fastmail.com"
 
 COPY . /usr/src/app
-
 WORKDIR /usr/src/app
 
-RUN gem install bundler
 RUN bundle install
+RUN rake install
 
-ENTRYPOINT ["ruby"]
+ENTRYPOINT ["hydan"]

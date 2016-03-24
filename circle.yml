@@ -1,0 +1,28 @@
+machine:
+  environment:
+    TARGETS: '2.1 2.2 2.3'
+  services:
+    - docker
+
+dependencies:
+  override:
+    - gem install rubocop
+    - | # Build required images
+      for v in ${TARGETS[*]}; do
+        echo "Building version $v..."
+        sed "s/#VERSION#/$v/g" Dockerfile.tpl > Dockerfile
+        docker build -t $REGISTRY_URL/seibelsbi/docker-hydan:$v .
+      done
+
+test:
+  override:
+    - docker run -it --entrypoint bash $REGISTRY_URL/seibelsbi/docker-hydan:2.1 -c 'rake ci_test'
+    - docker run -it --entrypoint bash $REGISTRY_URL/seibelsbi/docker-hydan:2.2 -c 'rake ci_test'
+    - docker run -it --entrypoint bash $REGISTRY_URL/seibelsbi/docker-hydan:2.3 -c 'rake ci_test'
+
+deployment:
+  master:
+    branch: master
+    commands:
+      - docker login -e=$REGISTRY_EMAIL -u=$REGISTRY_USER -p=$REGISTRY_PASSWORD $REGISTRY_URL
+      - docker push $REGISTRY_URL/seibelsbi/docker-hydan

@@ -1,0 +1,6 @@
+-   repo: git://github.com/pre-commit/pre-commit-hooks
+    sha: ff65d01841ad012d0a9aa1dc451fc4539d8b7baf
+    hooks:
+    -   id: check-yaml
+    -   id: detect-aws-credentials
+    -   id: trailing-whitespace

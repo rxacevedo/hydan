@@ -1,2 +1,4 @@
 source 'https://rubygems.org'
-gem 'aws-sdk', '~> 2'
+
+# Specify your gem's dependencies in hydan.gemspec
+gemspec
