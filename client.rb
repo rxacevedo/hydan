@@ -24,6 +24,9 @@ AWS_PROFILE           = 'terraform-qa'.freeze
 AWS_ACCESS_KEY_ID     = ''.freeze
 AWS_SECRET_ACCESS_KEY = ''.freeze
 
+OUT_BEGIN = '-----BEGIN S3 OBJECT OUTPUT-----'.freeze
+OUT_END  =  '-----END S3 OBJECT OUTPUT-----'.freeze
+
 # This class encrypts/uploads and downloads/decrypts files
 # given a specified path and CMK alias
 class EncryptedS3EnvClient
@@ -91,6 +94,16 @@ end
 
 # If bucket and key are present but file is not, it signifies a
 # download/decrypt operation
+#
+# - Client should be able to encrypt files without uploading them
+# - Client should be able to decrypt local files
+# - Client should be able to download files without decrypting them
+# - Client should support file encryption and line encryption
+# - Client should support encrypting data on STDIN
+# - Client should implement encrypt/upload and decrypt/download
+#   such that they can be chained, i.e.:
+#   ./client.rb encrypt | ./client.rb upload
+
 options = {}
 OptionParser.new do |opts|
   opts.banner = 'Usage: encrypt.rb [options]'
@@ -120,6 +133,8 @@ end.parse!
 action = ARGV.find { |arg| arg == 'upload' || arg == 'download' }
 
 case action
+when 'encrypt'
+when 'decrypt'
 when 'upload'
   client = EncryptedS3EnvUploader.new(options[:alias])
   client.upload!(
@@ -129,9 +144,9 @@ when 'upload'
   )
 when 'download'
   client = EncryptedS3EnvDownloader.new(options[:alias])
-  puts '-----BEGIN S3 OBJECT OUTPUT-----'
+  puts OUT_BEGIN
   puts client.download!(options[:bucket], options[:key])
-  puts '-----END S3 OBJECT OUTPUT-----'
+  puts OUT_END
 else
   LOGGER.error "Error: No action implemented for action: #{action}"
 end
