@@ -1,4 +1,6 @@
 require 'aws-sdk'
+require 'base64'
+require 'gibberish'
 
 # TODO: Factor out, this shadows superclass' instance
 AWS_REGION = 'us-east-1'.freeze
@@ -28,10 +30,33 @@ class KMSEncryptionHelper
   end
 
   # Returns a File object pointing to the encrypted file
-  def encrypt_file(file, kms_key_id)
+  def encrypt_file(file, dest, kms_key_id)
+    body = File.open(file, 'r').read
+    resp = @kms.encrypt(key_id: kms_key_id, plaintext: body)
+    File.open(dest, 'rw') do |f|
+      f.write resp.ciphertext_blob
+    end
   end
 
+  # Returns a Base64 encoded version of the ciphertext
   def encrypt_string(string, kms_key_id)
+    # resp = @kms.encrypt(key_id: kms_key_id, plaintext: string)
+    resp = @kms.generate_data_key(
+      key_id: kms_key_id,
+      key_spec: 'AES_256'
+    )
+    cipher = Gibberish::AES.new(resp[:plaintext])
+    output = {'ciphertext' => cipher.encrypt(string),
+              'data_key' => Base64.strict_encode64(resp[:ciphertext_blob])}
+
+    # This works
+    # datakey =  Base64.strict_decode64(output['data_key'])
+    # cleartextkey = @kms.decrypt(:ciphertext_blob => datakey)
+    # dec_cipher = Gibberish::AES.new(cleartextkey.plaintext)
+    # cleartext = dec_cipher.decrypt(output['ciphertext'])
+    # puts "Cleartext: #{cleartext}"
+
+    output
   end
 
   # Returns the KMS key ID for a given alias

@@ -13,7 +13,7 @@ require 'optparse'
 require 'pp'
 
 # Debug
-require 'pry'
+# require 'pry'
 
 require './kms_encrypt.rb'
 
@@ -37,13 +37,6 @@ class EncryptedS3EnvClient
 
   # Set up AWS credentials
   def initialize(key_alias)
-    unless ENV['AWS_ACCESS_KEY_ID'] && ENV['AWS_SECRET_ACCESS_KEY']
-      Aws.config.update(
-        region: AWS_REGION,
-        # TODO: Don't hard-code this
-        credentials: Aws::SharedCredentials.new(profile_name: AWS_PROFILE)
-      )
-    end
     kms_init!
     s3_init!(key_alias, @kms)
   end
@@ -95,6 +88,14 @@ class EncryptedS3EnvDownloader < EncryptedS3EnvClient
   end
 end
 
+unless ENV['AWS_ACCESS_KEY_ID'] && ENV['AWS_SECRET_ACCESS_KEY']
+  Aws.config.update(
+    region: AWS_REGION,
+    # TODO: Don't hard-code this
+    credentials: Aws::SharedCredentials.new(profile_name: AWS_PROFILE)
+  )
+end
+
 options = {}
 OptionParser.new do |opts|
   opts.banner = 'Usage: encrypt.rb [options]'
@@ -116,6 +117,9 @@ OptionParser.new do |opts|
   opts.on('--plaintext TEXT', 'Plaintext to be encrypted') do |p|
     options[:plaintext] = p
   end
+  opts.on('-e', '--envelope', 'Use envelope encryption, or expect an encrypted data key for decryption') do |e|
+    options[:envelope] = p
+  end
   opts.on('-h', '--help') do
     puts opts
     exit
@@ -129,8 +133,8 @@ LOGGER.debug "Action: #{action}, class: #{action.class}"
 case action
 when 'encrypt'
   client = KMSEncryptionHelper.new
-  ciphertext = client.encrypt(options[:plaintext], options[:alias])
-  puts ciphertext
+  ciphertext_base64 = client.encrypt(options[:plaintext], options[:alias])
+  puts JSON.pretty_generate(ciphertext_base64)
 when 'decrypt'
   puts 'DISABLED'
 when 'upload'
