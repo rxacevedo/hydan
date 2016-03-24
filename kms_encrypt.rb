@@ -1,21 +1,19 @@
 require 'aws-sdk'
 require 'base64'
 require 'gibberish'
-
-# TODO: Factor out, this shadows superclass' instance
-AWS_REGION = 'us-east-1'.freeze
+require './aws_const.rb'
 
 # Class to simplify KMS encryption interface
 class KMSEncryptionHelper
 
   def initialize
-    @kms = Aws::KMS::Client.new(region: AWS_REGION)
+    @kms = Aws::KMS::Client.new(region: Const::AWS_REGION)
   end
 
   # Returns a base64 encoded string that represents the encrypted content
   def encrypt(body, kms_key_alias)
     kms_key_id = get_kms_key_id(kms_key_alias)
-    puts "Body: #{body}, alias: #{kms_key_alias}, id: #{kms_key_id}"
+    # puts "Body: #{body}, alias: #{kms_key_alias}, id: #{kms_key_id}"
 
     # Inspect object type and dispatch
     case body
@@ -48,14 +46,6 @@ class KMSEncryptionHelper
     cipher = Gibberish::AES.new(resp[:plaintext])
     output = {'ciphertext' => cipher.encrypt(string),
               'data_key' => Base64.strict_encode64(resp[:ciphertext_blob])}
-
-    # This works
-    # datakey =  Base64.strict_decode64(output['data_key'])
-    # cleartextkey = @kms.decrypt(:ciphertext_blob => datakey)
-    # dec_cipher = Gibberish::AES.new(cleartextkey.plaintext)
-    # cleartext = dec_cipher.decrypt(output['ciphertext'])
-    # puts "Cleartext: #{cleartext}"
-
     output
   end
 
