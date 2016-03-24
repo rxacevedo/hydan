@@ -19,26 +19,24 @@ LOGGER                = Logger.new(STDOUT)
 LOGGER.level          = Logger::DEBUG
 
 # Defaults
-AWS_REGION            = 'us-east-1'
-AWS_PROFILE           = 'terraform-qa'
-AWS_ACCESS_KEY_ID     = ''
-AWS_SECRET_ACCESS_KEY = ''
+AWS_REGION            = 'us-east-1'.freeze
+AWS_PROFILE           = 'terraform-qa'.freeze
+AWS_ACCESS_KEY_ID     = ''.freeze
+AWS_SECRET_ACCESS_KEY = ''.freeze
 
-# This class encrypts/uploads and downloads/decrypts files 
+# This class encrypts/uploads and downloads/decrypts files
 # given a specified path and CMK alias
 class EncryptedS3EnvClient
-
   attr_accessor :s3, :kms
 
   # Set up AWS credentials
   def initialize(key_alias)
-    puts "Initializing BASE..."
     unless ENV['AWS_ACCESS_KEY_ID'] && ENV['AWS_SECRET_ACCESS_KEY']
-      Aws.config.update({
+      Aws.config.update(
         region: AWS_REGION,
         # TODO: Don't hard-code this
-        credentials: Aws::SharedCredentials.new({ profile_name: AWS_PROFILE })
-      })
+        credentials: Aws::SharedCredentials.new(profile_name: AWS_PROFILE)
+      )
     end
     kms_init!
     s3_init!(key_alias, @kms)
@@ -57,7 +55,7 @@ class EncryptedS3EnvClient
     LOGGER.debug "Key alias: #{key_alias}, key id: #{key_id}"
     key_id
   end
-  
+
   # Initializes the S3 client and the encrypted wrapper
   def s3_init!(kms_alias, kms_client)
     kms_key_id = kms_get_key(kms_alias)
@@ -65,11 +63,12 @@ class EncryptedS3EnvClient
     @s3_enc = Aws::S3::Encryption::Client.new(
       client: @s3,
       kms_key_id: kms_key_id,
-      kms_client: kms_client,
+      kms_client: kms_client
     )
   end
 end
 
+# Uploader
 class EncryptedS3EnvUploader < EncryptedS3EnvClient
   # Uploads the file using the encrypted uploader
   # (currently without SSE)
@@ -82,6 +81,7 @@ class EncryptedS3EnvUploader < EncryptedS3EnvClient
   end
 end
 
+# Downloader
 class EncryptedS3EnvDownloader < EncryptedS3EnvClient
   def download!(bucket, key)
     response = @s3_enc.get_object(bucket: bucket, key: key)
@@ -89,11 +89,12 @@ class EncryptedS3EnvDownloader < EncryptedS3EnvClient
   end
 end
 
-# If bucket and key are present but file is not, it signifies a download/decrypt operation
+# If bucket and key are present but file is not, it signifies a
+# download/decrypt operation
 options = {}
 OptionParser.new do |opts|
-  opts.banner = "Usage: encrypt.rb [options]"
-  opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
+  opts.banner = 'Usage: encrypt.rb [options]'
+  opts.on('-v', '--[no-]verbose', 'Run verbosely') do |v|
     options[:verbose] = v
   end
   opts.on('-a ALIAS', '--alias ALIAS', 'The KMS key alias') do |k|
@@ -114,7 +115,7 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-# This will only grab the first one, if you specify both 
+# This will only grab the first one, if you specify both
 # then you're doing it wrong anyways
 action = ARGV.find { |arg| arg == 'upload' || arg == 'download' }
 
