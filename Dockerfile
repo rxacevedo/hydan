@@ -8,4 +8,4 @@ WORKDIR /usr/src/app
 RUN gem install bundler
 RUN bundle install
 
-ENTRYPOINT ["ruby"]
+ENTRYPOINT ["bundle", "exec", "bin/kms-secrets-shim"]

@@ -1,4 +1,4 @@
-class KMSDecryptionHelper
+class Kms::Secrets::Shim::DecryptionHelper
 
   def initialize
     @kms = Aws::KMS::Client.new(region: Const::AWS_REGION)

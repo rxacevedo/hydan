@@ -1,3 +1,4 @@
 source 'https://rubygems.org'
-gem 'aws-sdk', '~> 2'
-gem 'gibberish'
+
+# Specify your gem's dependencies in kms-secrets-shim.gemspec
+gemspec

@@ -1,13 +1,13 @@
 require 'aws-sdk'
 require 'base64'
 require 'gibberish'
-require './aws_const.rb'
+require 'kms/secrets/shim/aws_const'
 
 # Class to simplify KMS encryption interface
-class KMSEncryptionHelper
+class Kms::Secrets::Shim::EncryptionHelper
 
   def initialize
-    @kms = Aws::KMS::Client.new(region: Const::AWS_REGION)
+    @kms = Aws::KMS::Client.new(region: Kms::Secrets::Shim::Const::AWS_REGION)
   end
 
   # Returns a base64 encoded string that represents the encrypted content
