@@ -22,7 +22,7 @@ end
 
 class Kms::Secrets::Shim::CLI < Thor
 
-  LOGGER = Logger.new(STDOUT)
+  LOGGER =       Logger.new(STDOUT)
   LOGGER.level = Logger::INFO
 
   desc 'encrypt', 'Encrypts a string or file'
@@ -38,14 +38,14 @@ class Kms::Secrets::Shim::CLI < Thor
     if options[:file]
       # Encrypt file, write to new file
       file = File.open(options[:file], 'r')
-      output = client.encrypt_file(file, kms_key_id)
-      File.open(options[:out], 'w') { |f| f.write output } if options[:out]
-      # LOGGER.info "Encrypted file saved at: #{new_file}"
-      puts output unless options[:out]
+      json = client.encrypt(file, kms_key_id) { |f, k| f.read } # We "unwrap" the text with an optional block
+      File.open(options[:out], 'w') { |f| f.write json } if options[:out]
+      # LOGGER.info "Encrypted file saved at: #{new_file}" if options[:out]
+      puts json unless options[:out]
     else
       # Encrypt plaintext
-      ciphertext_json = client.encrypt_string(text, kms_key_id)
-      puts ciphertext_json
+      json = client.encrypt(text, kms_key_id)
+      puts json
     end
   end
 
@@ -56,19 +56,16 @@ class Kms::Secrets::Shim::CLI < Thor
 
     client = Kms::Secrets::Shim::DecryptionHelper.new
 
-    case options[:file]
-    when NilClass # No file specified, read from STDIN
-      data = ''
-      data << $LAST_READ_LINE while $stdin.gets
-      plaintext = client.decrypt(data)
-      puts "Decrypted: #{plaintext}"
-    when String # File path was passed in
+    if options[:file]
       file = File.open(options[:file], 'r')
       plaintext = client.decrypt(file.read)
       puts plaintext unless options[:out]
       File.open(options[:out], 'w') { |f| f.write plaintext } if options[:out]
-    else
-      puts "No mechanism implemented for: #{options[:file]}"
+    else 
+      data = ''
+      data << $LAST_READ_LINE while $stdin.gets
+      plaintext = client.decrypt(data)
+      puts "Decrypted: #{plaintext}"
     end
 
   end

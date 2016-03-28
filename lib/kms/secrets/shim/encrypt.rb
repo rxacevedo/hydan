@@ -21,35 +21,18 @@ class Kms::Secrets::Shim::EncryptionHelper
 
   # Returns a JSON string containing the ciphertext (Base64 encoded)
   # and the encrypted data key used to encrypt it
-  def encrypt_string(plaintext, kms_key_id)
+  def encrypt(plaintext, kms_key_id, &block)
+    unwrapped = block.call(plaintext) if block
     resp = @kms.generate_data_key(
       key_id: kms_key_id,
       key_spec: 'AES_256'
     )
     cipher = Gibberish::AES.new(resp[:plaintext])
     output = {
-      'ciphertext' => cipher.encrypt(plaintext),
+      'ciphertext' => cipher.encrypt(unwrapped || plaintext),
       'data_key' => Base64.strict_encode64(resp[:ciphertext_blob])
     }
     JSON.pretty_generate output
   end
-
-  # Returns a JSON string containing the ciphertext of the file
-  # contents (Base64 encoded) and the encrypted data key used
-  # to encrypt it
-  def encrypt_file(file, kms_key_id)
-    resp = @kms.generate_data_key(
-      key_id: kms_key_id,
-      key_spec: 'AES_256'
-    )
-    cipher = Gibberish::AES.new(resp[:plaintext])
-    output = {
-      'ciphertext' => cipher.encrypt(file.read),
-      'data_key' => Base64.strict_encode64(resp[:ciphertext_blob])
-    }
-    JSON.pretty_generate output
-  end
-
-  # private :encrypt_file, :encrypt_string
 
 end
