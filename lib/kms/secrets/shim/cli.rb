@@ -1,10 +1,13 @@
+require 'aws-sdk'
+require 'base64'
+require 'English'
+require 'gibberish'
 require 'kms/secrets/shim'
 require 'kms/secrets/shim/encrypt'
 require 'kms/secrets/shim/decrypt'
-require 'thor'
-require 'English'
+require 'kms/secrets/shim/const'
 require 'logger'
-require 'pp'
+require 'thor'
 
 
 unless ENV['AWS_ACCESS_KEY_ID'] && ENV['AWS_SECRET_ACCESS_KEY']
@@ -30,14 +33,19 @@ class Kms::Secrets::Shim::CLI < Thor
     text = args.join ' '
     LOGGER.debug "Args: #{text}"
     client = Kms::Secrets::Shim::EncryptionHelper.new
+    kms_key_id = client.get_kms_key_id options[:key_alias]
+
     if options[:file]
+      # Encrypt file, write to new file
       file = File.open(options[:file], 'r')
-      new_file = client.encrypt(file, options[:key_alias])
-      LOGGER.info "Encrypted file saved at: #{new_file}"
+      output = client.encrypt_file(file, kms_key_id)
+      File.open(options[:out], 'w') { |f| f.write output } if options[:out]
+      # LOGGER.info "Encrypted file saved at: #{new_file}"
+      puts output unless options[:out]
     else
       # Encrypt plaintext
-      ciphertext_base64 = client.encrypt(text, options[:key_alias])
-      puts JSON.pretty_generate(ciphertext_base64)
+      ciphertext_json = client.encrypt_string(text, kms_key_id)
+      puts ciphertext_json
     end
   end
 
@@ -46,22 +54,23 @@ class Kms::Secrets::Shim::CLI < Thor
   method_option :out, :type => :string
   def decrypt(*args)
 
-    # Testing
-    data = ''
-    data << $LAST_READ_LINE while $stdin.gets
-    # End testing
-
     client = Kms::Secrets::Shim::DecryptionHelper.new
 
-    # case data
-    # when NilClass
-    # when String
-    # else
-    #   puts "No case..."
-    # end
+    case options[:file]
+    when NilClass # No file specified, read from STDIN
+      data = ''
+      data << $LAST_READ_LINE while $stdin.gets
+      plaintext = client.decrypt(data)
+      puts "Decrypted: #{plaintext}"
+    when String # File path was passed in
+      file = File.open(options[:file], 'r')
+      plaintext = client.decrypt(file.read)
+      puts plaintext unless options[:out]
+      File.open(options[:out], 'w') { |f| f.write plaintext } if options[:out]
+    else
+      puts "No mechanism implemented for: #{options[:file]}"
+    end
 
-    plaintext = client.decrypt(data)
-    puts "Decrypted: #{plaintext}"
   end
 
 end
