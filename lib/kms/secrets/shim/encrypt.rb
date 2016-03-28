@@ -18,7 +18,7 @@ class Kms::Secrets::Shim::EncryptionHelper
     # Inspect object type and dispatch
     case body
     when File
-      encrypt_file(body, kms_key_id)
+      encrypt_file(body, '/tmp/new_file', kms_key_id)
     when String
       encrypt_string(body, kms_key_id)
     else
@@ -31,9 +31,10 @@ class Kms::Secrets::Shim::EncryptionHelper
   def encrypt_file(file, dest, kms_key_id)
     body = File.open(file, 'r').read
     resp = @kms.encrypt(key_id: kms_key_id, plaintext: body)
-    File.open(dest, 'rw') do |f|
+    File.open(dest, 'w') do |f|
       f.write resp.ciphertext_blob
     end
+    dest
   end
 
   # Returns a Base64 encoded version of the ciphertext

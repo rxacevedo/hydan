@@ -1,7 +1,7 @@
 class Kms::Secrets::Shim::DecryptionHelper
 
   def initialize
-    @kms = Aws::KMS::Client.new(region: Const::AWS_REGION)
+    @kms = Aws::KMS::Client.new(region: Kms::Secrets::Shim::Const::AWS_REGION)
   end
 
   def decrypt(ciphertext)
@@ -27,7 +27,7 @@ class Kms::Secrets::Shim::DecryptionHelper
 
   # Takes a binary-encoded file and decrypts it 
   # using the associated data key
-  def decrypt_file(file, data_key)
+  def decrypt_file(file)
   end
 
 end
