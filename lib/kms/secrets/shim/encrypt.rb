@@ -17,8 +17,6 @@ class Kms::Secrets::Shim::EncryptionHelper
     end
   end
 
-  # TODO: These two methods are basically the same
-
   # Returns a JSON string containing the ciphertext (Base64 encoded)
   # and the encrypted data key used to encrypt it
   def encrypt(plaintext, kms_key_id, &block)

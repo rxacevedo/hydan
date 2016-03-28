@@ -27,25 +27,39 @@ class Kms::Secrets::Shim::CLI < Thor
 
   desc 'encrypt', 'Encrypts a string or file'
   method_option :file, :type => :string
+  method_option :plaintext, :type => :string
   method_option :out, :type => :string
   method_option :key_alias, :type => :string, :require => true
   def encrypt(*args)
-    text = args.join ' '
-    LOGGER.debug "Args: #{text}"
+
     client = Kms::Secrets::Shim::EncryptionHelper.new
     kms_key_id = client.get_kms_key_id options[:key_alias]
 
+    # CLI args other than flags are *ignored* with file input
     if options[:file]
       # Encrypt file, write to new file
       file = File.open(options[:file], 'r')
-      json = client.encrypt(file, kms_key_id) { |f, k| f.read } # We "unwrap" the text with an optional block
+      # We "unwrap" the text with an optional block that #encrypt
+      # applies to the input if supplied
+      json = client.encrypt(file, kms_key_id) { |f, k| f.read }
+
+      # TODO: Don't duplicate this, file output is supported in either case
       File.open(options[:out], 'w') { |f| f.write json } if options[:out]
-      # LOGGER.info "Encrypted file saved at: #{new_file}" if options[:out]
       puts json unless options[:out]
     else
-      # Encrypt plaintext
+      # Handle STDIN/CLI text (STDIN ignored if CLI present)
+      text = options[:plaintext] if options[:plaintext]
+      unless options[:plaintext]
+        text = ''
+        text << $LAST_READ_LINE while $stdin.gets
+      end
+      # No block specified here, encrypt assumes the input text is
+      # plaintext unless a block is passed in to applyt to the value
       json = client.encrypt(text, kms_key_id)
-      puts json
+
+      # TODO: Don't duplicate this, file output is supported in either case
+      File.open(options[:out], 'w') { |f| f.write json } if options[:out]
+      puts json unless options[:out]
     end
   end
 
@@ -57,15 +71,22 @@ class Kms::Secrets::Shim::CLI < Thor
     client = Kms::Secrets::Shim::DecryptionHelper.new
 
     if options[:file]
+      # Decrypt file that was encrypted
+      # by client
       file = File.open(options[:file], 'r')
       plaintext = client.decrypt(file.read)
+
+      # Output in both cases
       puts plaintext unless options[:out]
       File.open(options[:out], 'w') { |f| f.write plaintext } if options[:out]
     else 
       data = ''
       data << $LAST_READ_LINE while $stdin.gets
       plaintext = client.decrypt(data)
-      puts "Decrypted: #{plaintext}"
+
+      # STDOUT is assumed for STDIN input (no CLI
+      # --text input currently implemented)
+      puts plaintext
     end
 
   end
