@@ -19,7 +19,7 @@ module SecretsHelper
     method_option :file, :type => :string
     method_option :plaintext, :type => :string
     method_option :out, :type => :string
-    method_option :key_alias, :type => :string, :require => true
+    method_option :key_alias, :type => :string, :required => true
     def encrypt(*args)
 
       # PHASES:
