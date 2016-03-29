@@ -20,6 +20,26 @@ unless ENV['AWS_ACCESS_KEY_ID'] && ENV['AWS_SECRET_ACCESS_KEY']
   )
 end
 
+class S3 < Thor
+  # - If cp is copying *from S3 to local*, then --decrypt can mean "decrypt the file before writing to disk"
+  # - If cp is copying *from local to s3*, then --encrypt can mean "encrypt the file before writing to S3"
+  # TODO: This still doesn't account for the S3EncryptedClient's upload/download functions, which read/write binary 
+  # encoded files (not the JSON/base64 stuff that I'm doing here).
+  # Options:
+  # - cp <SRC> <DEST> (parse paths to determine if S3 bucket/key prefix vs local directory
+  desc 'cp', 'Use the S3 API to copy files'
+  method_option :encrypt, :type => :boolean
+  method_option :decrypt, :type => :boolean
+  def cp (*args)
+  end
+
+  no_commands do
+    def parse_paths(*paths)
+    end
+  end
+
+end
+
 class Kms::Secrets::Shim::CLI < Thor
 
   LOGGER =       Logger.new(STDOUT)
@@ -31,6 +51,12 @@ class Kms::Secrets::Shim::CLI < Thor
   method_option :out, :type => :string
   method_option :key_alias, :type => :string, :require => true
   def encrypt(*args)
+
+    # PHASES:
+    # - Initialize client
+    # - HANDLE INPUT
+    # - ENCRYPT
+    # - HANDLE OUTPUT
 
     client = Kms::Secrets::Shim::EncryptionHelper.new
     kms_key_id = client.get_kms_key_id options[:key_alias]
@@ -68,6 +94,12 @@ class Kms::Secrets::Shim::CLI < Thor
   method_option :out, :type => :string
   def decrypt(*args)
 
+    # PHASES:
+    # - Initialize client
+    # - HANDLE INPUT
+    # - ENCRYPT
+    # - HANDLE OUTPUT
+
     client = Kms::Secrets::Shim::DecryptionHelper.new
 
     if options[:file]
@@ -79,16 +111,20 @@ class Kms::Secrets::Shim::CLI < Thor
       # Output in both cases
       puts plaintext unless options[:out]
       File.open(options[:out], 'w') { |f| f.write plaintext } if options[:out]
-    else 
+    else
       data = ''
       data << $LAST_READ_LINE while $stdin.gets
       plaintext = client.decrypt(data)
 
       # STDOUT is assumed for STDIN input (no CLI
       # --text input currently implemented)
+      # TODO: Don't assume STDOUT, check for --out flag
       puts plaintext
     end
 
   end
+
+  desc 's3', 'Use the S3 API'
+  subcommand 's3', S3
 
 end

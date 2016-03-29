@@ -7,8 +7,6 @@ class Kms::Secrets::Shim::DecryptionHelper
     )
   end
 
-  # # TODO: Eliminate this method and call string/file methods
-  # # explicitly
   def decrypt(json)
     input_hash = JSON.parse(json)
     data_key = Base64.strict_decode64(input_hash['data_key'])
@@ -17,20 +15,5 @@ class Kms::Secrets::Shim::DecryptionHelper
     plaintext = cipher.decrypt(input_hash['ciphertext'])
     plaintext
   end
-
-  # # Takes a Base64 encoded string and decrypts it
-  # # using the associated data key
-  # def decrypt_string(string, data_key)
-  #   cipher = Gibberish::AES.new(data_key)
-  #   plaintext = cipher.decrypt(string)
-  #   plaintext
-  # end
-
-  # # Takes a binary-encoded file and decrypts it 
-  # # using the associated data key
-  # def decrypt_file(file)
-  #   resp = @kms.decrypt(:ciphertext_blob => file.read)
-  #   resp[:plaintext]
-  # end
 
 end
