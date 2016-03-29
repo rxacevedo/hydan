@@ -1,4 +1,4 @@
 source 'https://rubygems.org'
 
-# Specify your gem's dependencies in kms-secrets-shim.gemspec
+# Specify your gem's dependencies in secretshelper.gemspec
 gemspec

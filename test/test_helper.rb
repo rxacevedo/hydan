@@ -1,4 +1,4 @@
 $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
-require 'kms/secrets/shim'
+require 'secretshelper'
 
 require 'minitest/autorun'

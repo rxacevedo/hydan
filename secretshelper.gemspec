@@ -1,11 +1,11 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'kms/secrets/shim/version'
+require 'secretshelper/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "kms-secrets-shim"
-  spec.version       = Kms::Secrets::Shim::VERSION
+  spec.name          = "secretshelper"
+  spec.version       = SecretsHelper::VERSION
   spec.authors       = ["Roberto Acevedo"]
   spec.email         = ["rxacevedo@fastmail.com"]
 
@@ -30,6 +30,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "bundler", "~> 1.11"
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "minitest", "~> 5.0"
+  spec.add_development_dependency "pry", "~> 0.10"
+  spec.add_development_dependency "yard"
 
   spec.add_dependency "thor"
   spec.add_dependency "aws-sdk", "~> 2"
