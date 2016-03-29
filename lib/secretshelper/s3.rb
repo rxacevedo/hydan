@@ -39,7 +39,7 @@ module SecretsHelper
     end
 
     # Performs a PutObject operation for content at s3://bucket/key
-    def upload!(bucket, key, content)
+    def upload!(bucket, key, body)
       @s3.put_object(
         bucket: bucket,
         key:  key,
@@ -49,7 +49,11 @@ module SecretsHelper
 
     # Downloads the object located at s3://bucket/prefix and writes
     # the content to dest
-    def download(bucket, prefix, dest)
+    def download(bucket, prefix, dest = nil)
+      resp = @s3.get_object(bucket: bucket, key: prefix)
+      content = resp.body.string
+      File.open(dest, 'w') { |f| f.write content } if dest
+      puts content unless dest
     end
 
     # TODO: It would probably be a good idea to move this logic

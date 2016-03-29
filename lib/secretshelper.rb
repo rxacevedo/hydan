@@ -2,7 +2,7 @@ require "secretshelper/cli"
 require "secretshelper/version"
 
 module SecretsHelper
-  # TODO: Contrl when this runs, currently each time the module
+  # TODO: Control when this runs, currently each time the module
   # is loaded, the below code runs
   unless ENV['AWS_ACCESS_KEY_ID'] && ENV['AWS_SECRET_ACCESS_KEY']
     Aws.config.update(
