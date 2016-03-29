@@ -1,9 +1,10 @@
-require "secretshelper/version"
 require "secretshelper/cli"
+require "secretshelper/version"
 
 module SecretsHelper
+  # TODO: Contrl when this runs, currently each time the module
+  # is loaded, the below code runs
   unless ENV['AWS_ACCESS_KEY_ID'] && ENV['AWS_SECRET_ACCESS_KEY']
-    # Holy NAME
     Aws.config.update(
       region: SecretsHelper::Const::AWS_REGION,
       credentials: Aws::SharedCredentials.new(
