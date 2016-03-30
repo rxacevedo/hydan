@@ -8,6 +8,7 @@ module SecretsHelper
     desc 'cp', 'Use the S3 API to copy files'
     method_option :encrypt, :type => :boolean
     method_option :decrypt, :type => :boolean
+    method_option :key_alias, :type => :string
     # Copies src to dest (args[0] and args[1]). Handles S3->local (download)
     # and local->S3 (upload).
     def cp (*args)
@@ -23,8 +24,16 @@ module SecretsHelper
               end
 
       if event == :upload
+        # Since I can't conidtionally require flags (only require --key-alias for uploads)
+        # This is because I'm using cp for upload and download instead of making them
+        # separate commands
+        begin
+          puts %{No value provided for required options '--key-alias'}
+          exit
+        end unless options[:key_alias]
         bucket, key = S3Helper.parse_s3_path dest
-        client = S3Helper.new(options[:encrypt])
+        kms_key_id = SecretsHelper::KMS::EncryptionHelper.new.get_kms_key_id(options[:key_alias])
+        client = S3Helper.new(kms_key_id)
         client.upload(bucket, key, File.open(src, 'r').read)
       elsif event == :download
         bucket, key = S3Helper.parse_s3_path src
