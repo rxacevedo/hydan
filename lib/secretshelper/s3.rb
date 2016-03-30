@@ -79,8 +79,7 @@ module SecretsHelper
     end
 
     def self.parse_s3_path(s3_path)
-      bucket, key = s3_path.match(S3_PATH_REGEX).captures
-      [bucket, key]
+      s3_path.match(S3_PATH_REGEX).captures
     end
   end
 
