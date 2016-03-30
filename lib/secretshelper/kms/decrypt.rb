@@ -15,7 +15,7 @@ module SecretsHelper
         data_key = Base64.strict_decode64(input_hash['data_key'])
         plaintext_key = @kms.decrypt(:ciphertext_blob => data_key).plaintext
         cipher = Gibberish::AES.new(plaintext_key)
-        plaintext = cipher.decrypt(input_hash['ciphertext'])
+        plaintext = cipher.decrypt(JSON.generate(input_hash['ciphertext']))
         plaintext
       end
 

@@ -4,6 +4,8 @@ module SecretsHelper
   module KMS
     class EncryptionHelper
 
+      # Initializes the EncryptionHelper object with an
+      # Aws::KMS::Client.
       def initialize
         @kms = Aws::KMS::Client.new(
           region: SecretsHelper::Const::AWS_REGION
@@ -30,7 +32,7 @@ module SecretsHelper
         )
         cipher = Gibberish::AES.new(resp[:plaintext])
         output = {
-          'ciphertext' => cipher.encrypt(unwrapped || plaintext),
+          'ciphertext' => JSON.parse(cipher.encrypt(unwrapped || plaintext)),
           'data_key' => Base64.strict_encode64(resp[:ciphertext_blob])
         }
         JSON.pretty_generate output

@@ -17,7 +17,7 @@ module SecretsHelper
 
     desc 'encrypt', 'Encrypts a string or file'
     method_option :file, :type => :string
-    method_option :plaintext, :type => :string
+    method_option :plaintext, :type => :array
     method_option :out, :type => :string
     method_option :key_alias, :type => :string, :required => true
     def encrypt(*args)
@@ -44,7 +44,7 @@ module SecretsHelper
         puts json unless options[:out]
       else
         # Handle STDIN/CLI text (STDIN ignored if CLI present)
-        text = options[:plaintext] if options[:plaintext]
+        text = options[:plaintext].join ' ' if options[:plaintext]
         unless options[:plaintext]
           text = ''
           text << $LAST_READ_LINE while $stdin.gets
