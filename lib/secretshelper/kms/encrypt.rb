@@ -14,6 +14,7 @@ module SecretsHelper
         )
       end
 
+      # TODO: Should this be private?
       # Returns the KMS key ID for a given alias
       def get_kms_key_id(kms_key_alias)
         unless @kms.nil?
