@@ -4,6 +4,8 @@ module SecretsHelper
   module KMS
     class EncryptionHelper
 
+      ENV_LINE_REGEX = /(.*?)=(.*)/
+
       # Initializes the EncryptionHelper object with an
       # Aws::KMS::Client.
       def initialize
@@ -36,6 +38,16 @@ module SecretsHelper
           'data_key' => Base64.strict_encode64(resp[:ciphertext_blob])
         }
         JSON.pretty_generate output
+      end
+
+      def encrypt_env_file(plaintext, kms_key_id)
+        new_text = []
+        plaintext.each_line do |l|
+          k, v = l.match(ENV_LINE_REGEX).captures
+          enc_v = JSON.generate(JSON.parse(encrypt(v, kms_key_id)))
+          new_text << "#{k}=#{enc_v}"
+        end
+        new_text
       end
 
     end

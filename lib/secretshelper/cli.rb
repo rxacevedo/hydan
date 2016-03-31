@@ -17,6 +17,7 @@ module SecretsHelper
 
     desc 'encrypt', 'Encrypts a string or file'
     method_option :file, :type => :string
+    method_option :env_formatted, :type => :boolean
     method_option :plaintext, :type => :array
     method_option :out, :type => :string
     method_option :key_alias, :type => :string, :required => true
@@ -37,7 +38,8 @@ module SecretsHelper
         file = File.open(options[:file], 'r')
         # We "unwrap" the text with an optional block that #encrypt
         # applies to the input if supplied
-        json = client.encrypt(file, kms_key_id) { |f, k| f.read }
+        json = client.encrypt(file, kms_key_id) { |f, k| f.read } unless options[:env_formatted]
+        json = client.encrypt_env_file(file, kms_key_id) { |f, k| f.read } if options[:env_formatted]
 
         # TODO: Don't duplicate this, file output is supported in either case
         File.open(options[:out], 'w') { |f| f.write json } if options[:out]
@@ -61,6 +63,7 @@ module SecretsHelper
 
     desc 'decrypt', 'Decrypts a string or file'
     method_option :file, :type => :string
+    method_option :env_formatted, :type => :boolean
     method_option :out, :type => :string
     def decrypt(*args)
 
@@ -76,7 +79,10 @@ module SecretsHelper
         # Decrypt file that was encrypted
         # by client
         file = File.open(options[:file], 'r')
-        plaintext = client.decrypt(file.read)
+
+        # TODO: This kind of control-flow feels weird.
+        plaintext = client.decrypt(file.read) unless options[:env_formatted]
+        plaintext = client.decrypt_env_file(file.read) if options[:env_formatted]
 
         # Output in both cases
         puts plaintext unless options[:out]
@@ -84,7 +90,8 @@ module SecretsHelper
       else
         data = ''
         data << $LAST_READ_LINE while $stdin.gets
-        plaintext = client.decrypt(data)
+        plaintext = client.decrypt(data) unless options[:env_formatted]
+        plaintext = client.decrypt_env_file(data) if options[:env_formatted]
 
         # STDOUT is assumed for STDIN input (no CLI
         # --text input currently implemented)
