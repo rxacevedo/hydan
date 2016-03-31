@@ -5,19 +5,20 @@ class SecretsHelperTest < Minitest::Test
     refute_nil ::SecretsHelper::VERSION
   end
 
-  def test_that_encryption_via_stdin_works
+  def test_that_kms_encryption_via_stdin_works
     plaintext = 'This is the plaintext'
     key_alias = 'alias/sbi/app-secrets'
     `echo #{plaintext} | bundle exec bin/secretshelper encrypt --key-alias #{key_alias}`
     assert true
   end
 
-  def test_that_encryption_via_plaintext_flag_works
+  def test_that_kms_encryption_via_plaintext_flag_works
      plaintext = 'CLI plaintext 1234567890 --==!@#$%^&*()_+'
-    `bundle exec bin/secretshelper encrypt --key-alias #{key_alias} --plaintext #{plaintext}`
+     key_alias = 'alias/sbi/app-secrets'
+    `bundle exec bin/secretshelper encrypt --key-alias #{key_alias} --plaintext '#{plaintext}'`
   end
 
-  def test_that_decryption_via_stdin_works
+  def test_that_kms_decryption_via_stdin_works
     ciphertext = <<-EOS
     {
       "ciphertext": {
@@ -37,6 +38,15 @@ class SecretsHelperTest < Minitest::Test
     EOS
     decrypted = `bundle exec echo '#{ciphertext}' | bin/secretshelper decrypt`
     assert decrypted == "This is the plaintext\n"
+  end
+
+  def test_that_local_encryption_logic_works
+    plaintext = %{We gon' TEST THIS}
+    symmetric_key = `head -c 32 /dev/urandom`
+    puts SecretsHelper::Crypto::ENV_LINE_REGEX
+    # client = SecretsHelper::Crypto::EncryptionHelper.new
+    # ciphertext = client.encrypt(plaintext, symmetric_key)
+    # puts ciphertext
   end
 
   def test_that_path_parsing_s3_works
