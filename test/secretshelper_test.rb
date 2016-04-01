@@ -13,8 +13,8 @@ class SecretsHelperTest < Minitest::Test
   end
 
   def test_that_kms_encryption_via_plaintext_flag_works
-     plaintext = 'CLI plaintext 1234567890 --==!@#$%^&*()_+'
-     key_alias = 'alias/sbi/app-secrets'
+    plaintext = 'CLI plaintext 1234567890 --==!@#$%^&*()_+'
+    key_alias = 'alias/sbi/app-secrets'
     `bundle exec bin/secretshelper encrypt --key-alias #{key_alias} --plaintext '#{plaintext}'`
   end
 
@@ -43,10 +43,32 @@ class SecretsHelperTest < Minitest::Test
   def test_that_local_encryption_logic_works
     plaintext = %{We gon' TEST THIS}
     symmetric_key = `head -c 32 /dev/urandom`
-    puts SecretsHelper::Crypto::ENV_LINE_REGEX
-    # client = SecretsHelper::Crypto::EncryptionHelper.new
-    # ciphertext = client.encrypt(plaintext, symmetric_key)
-    # puts ciphertext
+    client = SecretsHelper::Crypto::EncryptionHelper.new(symmetric_key)
+    client.encrypt(plaintext)
+  end
+
+  def test_that_local_decryption_logic_works
+    symmetric_key = Base64.strict_decode64('5n/HCuJLX6miP7L52TxTO+9j3zOcwe5ff9vDuumvxNQ=')
+    ciphertext = <<-EOS
+    {
+      "ciphertext": {
+        "v": 1,
+        "adata": "",
+        "ks": 256,
+        "ct": "S2iicbhh24T/ZRQwksPNDy3uWCXLMdyEB255BUg=",
+        "ts": 96,
+        "mode": "gcm",
+        "cipher": "aes",
+        "iter": 100000,
+        "iv": "EWtJljxsqStkmTmM",
+        "salt": "B1ULFsCfJNM="
+      },
+      "data_key": "eyJ2IjoxLCJhZGF0YSI6IiIsImtzIjoyNTYsImN0IjoiTXFtcWdsdTlYcnJMVTdNaUdsYU03QjlDMlJTWU5ydjFjUWE4TG8vN2pmUFZZU3dBdkVMY0dHQnZwbms9IiwidHMiOjk2LCJtb2RlIjoiZ2NtIiwiY2lwaGVyIjoiYWVzIiwiaXRlciI6MTAwMDAwLCJpdiI6Iis5TytlVUp2WDQ3MUhlVDkiLCJzYWx0IjoiUHFCMUdZdGZHU0E9In0="
+    }
+    EOS
+    client = SecretsHelper::Crypto::DecryptionHelper.new(symmetric_key)
+    decrypted = client.decrypt(ciphertext)
+    assert decrypted == %{We gon' TEST THIS}
   end
 
   def test_that_path_parsing_s3_works

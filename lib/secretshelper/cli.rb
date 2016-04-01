@@ -5,6 +5,9 @@ require 'gibberish'
 require 'secretshelper/kms/encrypt'
 require 'secretshelper/kms/decrypt'
 require 'secretshelper/const'
+require 'secretshelper/crypto'
+require 'secretshelper/crypto/encrypt'
+require 'secretshelper/crypto/decrypt'
 require 'secretshelper/s3'
 require 'logger'
 require 'thor'
@@ -19,6 +22,7 @@ module SecretsHelper
     method_option :file, :type => :string
     method_option :env_formatted, :type => :boolean
     method_option :plaintext, :type => :array
+    method_option :kms, :type => :boolean
     method_option :out, :type => :string
     method_option :key_alias, :type => :string, :required => true
     def encrypt(*args)
@@ -103,6 +107,9 @@ module SecretsHelper
 
     desc 's3', 'Use the S3 API'
     subcommand 's3', SecretsHelper::S3
+
+    # desc 'kms', 'Use the KMS API for encryption/decryption'
+    # subcommand 'kms', SecretsHelper::KMS
 
   end
 end
