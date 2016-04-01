@@ -1,17 +1,3 @@
-require 'aws-sdk'
-require 'base64'
-require 'English'
-require 'gibberish'
-require 'secretshelper/kms/encrypt'
-require 'secretshelper/kms/decrypt'
-require 'secretshelper/const'
-require 'secretshelper/crypto'
-require 'secretshelper/crypto/encrypt'
-require 'secretshelper/crypto/decrypt'
-require 'secretshelper/s3'
-require 'logger'
-require 'thor'
-
 module SecretsHelper
   class CLI < Thor
 
@@ -106,7 +92,7 @@ module SecretsHelper
     end
 
     desc 's3', 'Use the S3 API'
-    subcommand 's3', SecretsHelper::S3
+    subcommand 's3', SecretsHelper::S3::S3Cmd
 
     # desc 'kms', 'Use the KMS API for encryption/decryption'
     # subcommand 'kms', SecretsHelper::KMS

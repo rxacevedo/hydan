@@ -7,9 +7,7 @@ module SecretsHelper
       ENV_LINE_REGEX = /(.*?)=(.*)/
 
       def initialize
-        @kms = Aws::KMS::Client.new(
-          region: SecretsHelper::Const::AWS_REGION
-        )
+        @kms = Aws::KMS::Client.new
       end
 
       # Decrypts a JSON object

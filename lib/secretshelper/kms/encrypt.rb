@@ -9,9 +9,7 @@ module SecretsHelper
       # Initializes the EncryptionHelper object with an
       # Aws::KMS::Client.
       def initialize
-        @kms = Aws::KMS::Client.new(
-          region: SecretsHelper::Const::AWS_REGION
-        )
+        @kms = Aws::KMS::Client.new
       end
 
       # TODO: Should this be private?
