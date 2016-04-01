@@ -5,7 +5,8 @@ class SecretsHelperTest < Minitest::Test
     refute_nil ::SecretsHelper::VERSION
   end
 
-  ## INTEGRATION TESTS (these tests reqiure Internet access/valid AWS credentials)
+  ## AWS integration tests (these tests reqiure Internet access/valid AWS credentials)
+
   def test_that_kms_encryption_via_stdin_works
     plaintext = 'This is the plaintext'
     key_alias = 'alias/sbi/app-secrets'
@@ -58,6 +59,8 @@ class SecretsHelperTest < Minitest::Test
     assert true
   end
 
+  ## Local integration tests
+
   def test_that_local_encryption_works
     plaintext = 'Testing local encryption logic via CLI'
     key = 'RhZA5KhWaBJqRj1xQwjnQprKziM8p5jsjVcIyB2H5Jg='
@@ -88,7 +91,8 @@ class SecretsHelperTest < Minitest::Test
     assert plaintext == "Testing local encryption via CLI\n"
   end
 
-  ## UNIT tests
+  ## Local unit tests (no CLI/str8 method invocations)
+
   def test_that_local_encryption_logic_works
     plaintext = %{We gon' TEST THIS}
     symmetric_key = `head -c 32 /dev/urandom`
@@ -119,6 +123,8 @@ class SecretsHelperTest < Minitest::Test
     decrypted = client.decrypt(ciphertext)
     assert decrypted == %{We gon' TEST THIS}
   end
+
+  # Utility logic tests
 
   def test_that_path_parsing_s3_works
     res = SecretsHelper::S3::S3Helper.parse_path('s3://bogus/a/b/c/object') == SecretsHelper::PathTypes::S3
