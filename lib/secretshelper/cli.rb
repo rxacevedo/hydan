@@ -1,7 +1,8 @@
 module SecretsHelper
   class CLI < Thor
 
-    LOGGER =       Logger.new(STDOUT)
+    include SecretsHelper::Crypto
+    LOGGER       = Logger.new(STDOUT)
     LOGGER.level = Logger::INFO
 
     desc 'encrypt', 'Encrypts a string or file'
@@ -10,46 +11,25 @@ module SecretsHelper
     method_option :plaintext, :type => :array
     method_option :kms, :type => :boolean
     method_option :out, :type => :string
-    method_option :key_alias, :type => :string, :required => true
+    method_option :key, :type => :string, :required => true
     def encrypt(*args)
+      key = Base64.strict_decode64(options[:key])
+      client = SecretsHelper::Crypto::EncryptionHelper.new(key)
 
-      # # PHASES:
-      # # - Initialize client
-      # # - HANDLE INPUT
-      # # - ENCRYPT
-      # # - HANDLE OUTPUT
 
-      # client = SecretsHelper::KMS::EncryptionHelper.new
-      # kms_key_id = client.get_kms_key_id options[:key_alias]
-
-      # # CLI args other than flags are *ignored* with file input
-      # if options[:file]
-      #   # Encrypt file, write to new file
-      #   file = File.open(options[:file], 'r')
-      #   # We "unwrap" the text with an optional block that #encrypt
-      #   # applies to the input if supplied
-      #   json = client.encrypt(file, kms_key_id) { |f, k| f.read } unless options[:env_formatted]
-      #   json = client.encrypt_env_file(file, kms_key_id) { |f, k| f.read } if options[:env_formatted]
-
-      #   # TODO: Don't duplicate this, file output is supported in either case
-      #   File.open(options[:out], 'w') { |f| f.write json } if options[:out]
-      #   puts json unless options[:out]
-      # else
-      #   # Handle STDIN/CLI text (STDIN ignored if CLI present)
-      #   text = options[:plaintext].join ' ' if options[:plaintext]
-      #   unless options[:plaintext]
-      #     text = ''
-      #     text << $LAST_READ_LINE while $stdin.gets
-      #   end
-      #   # No block specified here, encrypt assumes the input text is
-      #   # plaintext unless a block is passed in to applyt to the value
-      #   json = client.encrypt(text, kms_key_id)
-
-      #   # TODO: Don't duplicate this, file output is supported in either case
-      #   File.open(options[:out], 'w') { |f| f.write json } if options[:out]
-      #   puts json unless options[:out]
-      # end
+      if options[:file]
+        file = File.open(options[:file], 'r')
+        json = client.encrypt(file) { |f, k| f.read } unless options[:env_formatted]
+        json = client.encrypt_env_file(file) { |f, k| f.read } if options[:env_formatted]
+        handle_output(json)
+      else
+        text = handle_stdin
+        json = client.encrypt(text) unless options[:env_formatted]
+        json = client.encrypt_env_file(text) if options[:env_formatted]
+        handle_output(json)
+      end
     end
+
 
     desc 'decrypt', 'Decrypts a string or file'
     method_option :file, :type => :string
@@ -93,8 +73,7 @@ module SecretsHelper
     subcommand 's3', SecretsHelper::S3::S3Cmd
 
     desc 'kms', 'Use the KMS API for encryption/decryption'
-    subcommand 'kms', SecretsHelper::KMS::KMSCmd
+    subcommand 'kms', SecretsHelper::Crypto::KMS::KMSCmd
 
   end
-
 end

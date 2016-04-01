@@ -25,7 +25,8 @@ module SecretsHelper
 
         if event == :upload
           bucket, key = S3Helper.parse_s3_path dest
-          kms_key_id = SecretsHelper::KMS::EncryptionHelper.new.get_kms_key_id(options[:key_alias]) if options[:key_alias]
+          kms_client = SecretsHelper::Crypto::KMS::EncryptionHelper.new
+          kms_key_id = kms_client.get_kms_key_id(options[:key_alias]) if options[:key_alias]
           client = S3Helper.new(kms_key_id)
           client.upload(bucket, key, File.open(src, 'r').read)
         elsif event == :download
