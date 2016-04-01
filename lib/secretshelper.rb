@@ -4,6 +4,7 @@ require 'English'
 require 'gibberish'
 require 'logger'
 require 'thor'
+require 'secretshelper/kms'
 require 'secretshelper/kms/encrypt'
 require 'secretshelper/kms/decrypt'
 require 'secretshelper/path_types'
@@ -11,8 +12,8 @@ require 'secretshelper/crypto'
 require 'secretshelper/crypto/encrypt'
 require 'secretshelper/crypto/decrypt'
 require 'secretshelper/s3'
-require "secretshelper/cli"
-require "secretshelper/version"
+require 'secretshelper/cli'
+require 'secretshelper/version'
 
 module SecretsHelper
   # TODO: Control when this runs, currently each time the module

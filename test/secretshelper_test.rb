@@ -5,17 +5,18 @@ class SecretsHelperTest < Minitest::Test
     refute_nil ::SecretsHelper::VERSION
   end
 
+  ## INTEGRATION TESTS (these tests reqiure Internet access/valid AWS credentials)
   def test_that_kms_encryption_via_stdin_works
     plaintext = 'This is the plaintext'
     key_alias = 'alias/sbi/app-secrets'
-    `echo #{plaintext} | bundle exec bin/secretshelper encrypt --key-alias #{key_alias}`
+    `echo #{plaintext} | bundle exec bin/secretshelper kms encrypt --key-alias #{key_alias}`
     assert true
   end
 
   def test_that_kms_encryption_via_plaintext_flag_works
     plaintext = 'CLI plaintext 1234567890 --==!@#$%^&*()_+'
     key_alias = 'alias/sbi/app-secrets'
-    `bundle exec bin/secretshelper encrypt --key-alias #{key_alias} --plaintext '#{plaintext}'`
+    `bundle exec bin/secretshelper kms encrypt --key-alias #{key_alias} --plaintext '#{plaintext}'`
   end
 
   def test_that_kms_decryption_via_stdin_works
@@ -36,10 +37,29 @@ class SecretsHelperTest < Minitest::Test
       "data_key": "CiAfOVbeihf6rOyP611suE9ul/zYfZ1DY8k89owZgq5L9BKnAQEBAwB4HzlW3ooX+qzsj+tdbLhPbpf82H2dQ2PJPPaMGYKuS/QAAAB+MHwGCSqGSIb3DQEHBqBvMG0CAQAwaAYJKoZIhvcNAQcBMB4GCWCGSAFlAwQBLjARBAzpI8QPtKgo6lwd4WkCARCAOxpxb1zOM1g0lLWhJorMvOHBuYTZH7klr76I5M9cvXuWMMIDTBamLWCAT92bcSj+H6no0JjyJheus+Fu"
     }
     EOS
-    decrypted = `bundle exec echo '#{ciphertext}' | bin/secretshelper decrypt`
+    decrypted = `bundle exec echo '#{ciphertext}' | bin/secretshelper kms decrypt`
     assert decrypted == "This is the plaintext\n"
   end
 
+  # Copies a file from this repo to S3, should succeed silently
+  def test_that_s3_copy_works
+    src = 'Rakefile'
+    dest = 's3://sbi-secrets-qa/Rakefile'
+    key_alias = 'alias/sbi/app-secrets'
+    `bundle exec bin/secretshelper s3 cp #{src} #{dest}`
+    assert true
+  end
+
+  # Copies and encrypts a file to S3, should succeed silently
+  def test_that_s3_encrypted_copy_works
+    src = 'Rakefile'
+    dest = 's3://sbi-secrets-qa/Rakefile.enc'
+    key_alias = 'alias/sbi/app-secrets'
+    `bundle exec bin/secretshelper s3 cp #{src} #{dest} --key-alias #{key_alias}`
+    assert true
+  end
+
+  ## UNIT tests
   def test_that_local_encryption_logic_works
     plaintext = %{We gon' TEST THIS}
     symmetric_key = `head -c 32 /dev/urandom`
@@ -72,12 +92,12 @@ class SecretsHelperTest < Minitest::Test
   end
 
   def test_that_path_parsing_s3_works
-    res = SecretsHelper::S3Helper.parse_path('s3://bogus/a/b/c/object') == SecretsHelper::PathTypes::S3
+    res = SecretsHelper::S3::S3Helper.parse_path('s3://bogus/a/b/c/object') == SecretsHelper::PathTypes::S3
     assert res
   end
 
   def test_that_path_parsing_unix_works
-    res = SecretsHelper::S3Helper.parse_path('/usr') == SecretsHelper::PathTypes::UNIX
+    res = SecretsHelper::S3::S3Helper.parse_path('/usr') == SecretsHelper::PathTypes::UNIX
     assert res
   end
 end
