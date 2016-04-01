@@ -45,7 +45,6 @@ class SecretsHelperTest < Minitest::Test
   def test_that_s3_copy_works
     src = 'Rakefile'
     dest = 's3://sbi-secrets-qa/Rakefile'
-    key_alias = 'alias/sbi/app-secrets'
     `bundle exec bin/secretshelper s3 cp #{src} #{dest}`
     assert true
   end
@@ -57,6 +56,36 @@ class SecretsHelperTest < Minitest::Test
     key_alias = 'alias/sbi/app-secrets'
     `bundle exec bin/secretshelper s3 cp #{src} #{dest} --key-alias #{key_alias}`
     assert true
+  end
+
+  def test_that_local_encryption_works
+    plaintext = 'Testing local encryption logic via CLI'
+    key = 'RhZA5KhWaBJqRj1xQwjnQprKziM8p5jsjVcIyB2H5Jg='
+    `echo '#{plaintext}' | bundle exec bin/secretshelper encrypt --key #{key}`
+    assert true
+  end
+
+  def test_that_local_decryption_works
+    ciphertext = <<-EOS
+    {
+      "ciphertext": {
+        "v": 1,
+        "adata": "",
+        "ks": 256,
+        "ct": "jwdn0YIQqfc3ge3aFtIC+ersareyjv6+IDSq5QkWPE3E2l47b5puILAzE2L3",
+        "ts": 96,
+        "mode": "gcm",
+        "cipher": "aes",
+        "iter": 100000,
+        "iv": "UZufP9cL4EOnZdDX",
+        "salt": "jWW8jFC5uTE="
+      },
+      "data_key": "eyJ2IjoxLCJhZGF0YSI6IiIsImtzIjoyNTYsImN0IjoicWZTL2RNcytwaVNPcHBJRFUzUFJiR3hIMUxaMVdxSmladm5GYVdZbFc4TlNPK0hURGorcm1MWk44UFU9IiwidHMiOjk2LCJtb2RlIjoiZ2NtIiwiY2lwaGVyIjoiYWVzIiwiaXRlciI6MTAwMDAwLCJpdiI6IkFUaXJXYWJ4TytQK3NHQW0iLCJzYWx0IjoiZUVlMktrWDI4Yms9In0="
+    }
+    EOS
+    key = 'RhZA5KhWaBJqRj1xQwjnQprKziM8p5jsjVcIyB2H5Jg='
+    plaintext = `echo '#{ciphertext}' | bundle exec bin/secretshelper decrypt --key #{key}`
+    assert plaintext == "Testing local encryption via CLI\n"
   end
 
   ## UNIT tests
