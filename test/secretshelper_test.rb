@@ -18,6 +18,7 @@ class SecretsHelperTest < Minitest::Test
     plaintext = 'CLI plaintext 1234567890 --==!@#$%^&*()_+'
     key_alias = 'alias/sbi/app-secrets'
     `bundle exec bin/secretshelper kms encrypt --key-alias #{key_alias} --plaintext '#{plaintext}'`
+    assert true
   end
 
   def test_that_kms_decryption_via_stdin_works
@@ -98,6 +99,7 @@ class SecretsHelperTest < Minitest::Test
     symmetric_key = `head -c 32 /dev/urandom`
     client = SecretsHelper::Crypto::EncryptionHelper.new(symmetric_key)
     client.encrypt(plaintext)
+    assert true
   end
 
   def test_that_local_decryption_logic_works

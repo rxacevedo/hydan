@@ -1,3 +1,5 @@
+require 'pry'
+
 module SecretsHelper
   module Crypto
     ENV_LINE_REGEX = /(.*?)=(.*)/
@@ -23,6 +25,18 @@ module SecretsHelper
       File.open(options[:out], 'w') { |f| f.write json } if options[:out]
       puts json unless options[:out]
       nil
+    end
+
+    # Handles the output phase for file encryption/decryption.
+    # This only concerns the encrypted data key, since file
+    # encryption automatically assumes that an output file is being
+    # used (by the library). The input encrypted_data_key is expected
+    # to be a binary key, *not* Base64 encoded.
+    def handle_key_output(encrypted_data_key_blob, out_key_file = nil)
+      File.open(out_key_file, 'wb') {
+        |f| f.write encrypted_data_key_blob
+      } if out_key_file
+      puts "Data key (Base64): #{Base64.strict_encode64(encrypted_data_key_blob)}" unless out_key_file
     end
 
   end
