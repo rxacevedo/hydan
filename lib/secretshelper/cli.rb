@@ -34,22 +34,22 @@ module SecretsHelper
     end
   end
 
-  class CLI < Thor
+  class CLI < CLIBase
 
     include SecretsHelper::Crypto
     LOGGER       = Logger.new(STDOUT)
     LOGGER.level = Logger::INFO
 
     desc 'encrypt', 'Encrypt a string or file'
-    SecretsHelper::CLIBase.shared_options
-    SecretsHelper::CLIBase.shared_text_options
+    shared_options
+    shared_text_options
     def encrypt(*args)
       if options[:in]
         invoke :encrypt_file
       else
         master_key = Base64.strict_decode64(options[:key])
         client = SecretsHelper::Crypto::EncryptionHelper.new(master_key)
-        data = handle_stdin(options)
+        data = handle_input(options)
         json = client.encrypt(data) unless options[:env_formatted]
         json = client.encrypt_env_formatted(data) if options[:env_formatted]
         handle_output(json)
@@ -57,8 +57,8 @@ module SecretsHelper
     end
 
     desc 'encrypt-file', 'Encrypt a file'
-    SecretsHelper::CLIBase.shared_options
-    SecretsHelper::CLIBase.shared_file_options
+    shared_options
+    shared_file_options
     method_option(
       :key_out,
       :type => :string,
@@ -75,15 +75,15 @@ module SecretsHelper
     end
 
     desc 'decrypt', 'Decrypt a string or file'
-    SecretsHelper::CLIBase.shared_options
-    SecretsHelper::CLIBase.shared_text_options
+    shared_options
+    shared_text_options
     def decrypt(*args)
       if options[:file]
         invoke :decrypt_file
       else
         key = Base64.strict_decode64(options[:key])
         client = SecretsHelper::Crypto::DecryptionHelper.new(key)
-        data = handle_stdin
+        data = handle_input(options)
         plaintext = client.decrypt(data) unless options[:env_formatted]
         plaintext = client.decrypt_env_file(data) if options[:env_formatted]
         handle_output(plaintext)
@@ -91,8 +91,8 @@ module SecretsHelper
     end
 
     desc 'decrypt-file', 'Decrypt a file'
-    SecretsHelper::CLIBase.shared_options
-    SecretsHelper::CLIBase.shared_file_options
+    shared_options
+    shared_file_options
     def decrypt_file(*args)
       key = Base64.strict_decode64(options[:key]) # TODO: Accept either file or plaintext (Base64) keys
       client = SecretsHelper::Crypto::DecryptionHelper.new(key)
