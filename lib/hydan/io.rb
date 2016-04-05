@@ -1,9 +1,6 @@
-require 'pry'
-
-module SecretsHelper
-  module Crypto
+module Hydan
+  module IO
     ENV_LINE_REGEX = /(.*?)=(.*)/
-    DEFAULT_CIPHER = 'AES-256-CBC'
 
     # Reads text from STDIN, or uses the value supplied with
     # --plaintext, if any. Returns the text.

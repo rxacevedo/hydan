@@ -2,7 +2,7 @@
 
 require 'openssl'
 
-module SecretsHelper
+module Hydan
   module Crypto
     class EncryptionHelper
 
@@ -44,7 +44,7 @@ module SecretsHelper
       def encrypt_env_formatted(plaintext)
         new_text = []
         plaintext.each_line do |l|
-          k, v = l.match(Crypto::ENV_LINE_REGEX).captures
+          k, v = l.match(Hydan::IO::ENV_LINE_REGEX).captures
           enc_v = JSON.generate(JSON.parse(encrypt(v)))
           new_text << "#{k}=#{enc_v}"
         end

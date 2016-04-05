@@ -1,6 +1,6 @@
 require 'thor'
 
-module SecretsHelper
+module Hydan
   module S3
     # S3 command class
     class S3Cmd < Thor
@@ -25,7 +25,7 @@ module SecretsHelper
 
         if event == :upload
           bucket, key = S3Helper.parse_s3_path dest
-          kms_client = SecretsHelper::Crypto::KMS::EncryptionHelper.new
+          kms_client = Hydan::Crypto::KMS::EncryptionHelper.new
           kms_key_id = kms_client.get_kms_key_id(options[:key_alias]) if options[:key_alias]
           client = S3Helper.new(kms_key_id)
           client.upload(bucket, key, File.open(src, 'r').read)
@@ -73,7 +73,7 @@ module SecretsHelper
       end
 
       # Parses a given string path and returns the type
-      # (constants in SecretsHelper::PathTypes)
+      # (constants in Hydan::PathTypes)
       def self.parse_path(path)
         # If we "parse" it as an S3 path, we'll let the S3 client throw
         # an error if it's a non-existant path

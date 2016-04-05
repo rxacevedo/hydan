@@ -1,9 +1,9 @@
-module SecretsHelper
+module Hydan
   module Crypto
     module KMS
       class KMSCmd < Thor
 
-        include SecretsHelper::Crypto
+        include Hydan::Crypto
         # TODO: --plaintext would be better represented by --data
         desc 'encrypt', 'Encrypt a string or file'
         method_option :env_formatted, :type => :boolean
@@ -12,7 +12,7 @@ module SecretsHelper
         method_option :out, :type => :string
         method_option :plaintext, :type => :array
         def encrypt(*args)
-          client = SecretsHelper::Crypto::KMS::EncryptionHelper.new
+          client = Hydan::Crypto::KMS::EncryptionHelper.new
           kms_key_id = client.get_kms_key_id options[:key_alias]
 
           # TODO: Implement encrypt-file here, same as local enc/dec
@@ -35,7 +35,7 @@ module SecretsHelper
         method_option :out, :type => :string
         def decrypt(*args)
 
-          client = SecretsHelper::Crypto::KMS::DecryptionHelper.new
+          client = Hydan::Crypto::KMS::DecryptionHelper.new
 
           if options[:file]
             file = File.open(options[:file], 'r')

@@ -1,11 +1,11 @@
 # Class to simplify KMS encryption interface
 
-module SecretsHelper
+module Hydan
   module Crypto
     module KMS
       class EncryptionHelper
 
-        include SecretsHelper::Crypto
+        include Hydan::Crypto
 
         # Initializes the EncryptionHelper object with an
         # Aws::KMS::Client.
@@ -43,7 +43,7 @@ module SecretsHelper
         def encrypt_env_file(plaintext, kms_key_id)
           new_text = []
           plaintext.each_line do |l|
-            k, v = l.match(ENV_LINE_REGEX).captures
+            k, v = l.match(Hydan::IO::ENV_LINE_REGEX).captures
             enc_v = JSON.generate(JSON.parse(encrypt(v, kms_key_id)))
             new_text << "#{k}=#{enc_v}"
           end

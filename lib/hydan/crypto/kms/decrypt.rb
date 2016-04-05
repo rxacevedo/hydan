@@ -1,11 +1,11 @@
 # Class to simplify KMS decryption interface
 
-module SecretsHelper
+module Hydan
   module Crypto
     module KMS
       class DecryptionHelper
 
-        include SecretsHelper::Crypto
+        include Hydan::Crypto
 
         def initialize
           @kms = Aws::KMS::Client.new
@@ -32,7 +32,7 @@ module SecretsHelper
         def decrypt_env_file(env_body)
           new_text = []
           env_body.each_line do |l|
-            k, v = l.match(ENV_LINE_REGEX).captures
+            k, v = l.match(Hydan::IO::ENV_LINE_REGEX).captures
             dec_v = decrypt(v)
             new_text << "#{k}=#{dec_v}"
           end

@@ -10,14 +10,14 @@ class SecretsHelperTest < Minitest::Test
   def test_that_kms_encryption_via_stdin_works
     plaintext = 'This is the plaintext'
     key_alias = 'alias/sbi/app-secrets'
-    `echo #{plaintext} | bundle exec bin/secretshelper kms encrypt --key-alias #{key_alias}`
+    `echo #{plaintext} | bundle exec bin/hydan kms encrypt --key-alias #{key_alias}`
     assert true
   end
 
   def test_that_kms_encryption_via_plaintext_flag_works
     plaintext = 'CLI plaintext 1234567890 --==!@#$%^&*()_+'
     key_alias = 'alias/sbi/app-secrets'
-    `bundle exec bin/secretshelper kms encrypt --key-alias #{key_alias} --plaintext '#{plaintext}'`
+    `bundle exec bin/hydan kms encrypt --key-alias #{key_alias} --plaintext '#{plaintext}'`
     assert true
   end
 
@@ -39,7 +39,7 @@ class SecretsHelperTest < Minitest::Test
       "data_key": "CiAfOVbeihf6rOyP611suE9ul/zYfZ1DY8k89owZgq5L9BKnAQEBAwB4HzlW3ooX+qzsj+tdbLhPbpf82H2dQ2PJPPaMGYKuS/QAAAB+MHwGCSqGSIb3DQEHBqBvMG0CAQAwaAYJKoZIhvcNAQcBMB4GCWCGSAFlAwQBLjARBAzpI8QPtKgo6lwd4WkCARCAOxpxb1zOM1g0lLWhJorMvOHBuYTZH7klr76I5M9cvXuWMMIDTBamLWCAT92bcSj+H6no0JjyJheus+Fu"
     }
     EOS
-    decrypted = `bundle exec echo '#{ciphertext}' | bin/secretshelper kms decrypt`
+    decrypted = `bundle exec echo '#{ciphertext}' | bin/hydan kms decrypt`
     assert decrypted == "This is the plaintext\n"
   end
 
@@ -47,7 +47,7 @@ class SecretsHelperTest < Minitest::Test
   def test_that_s3_copy_works
     src = 'Rakefile'
     dest = 's3://sbi-secrets-qa/Rakefile'
-    `bundle exec bin/secretshelper s3 cp #{src} #{dest}`
+    `bundle exec bin/hydan s3 cp #{src} #{dest}`
     assert true
   end
 
@@ -56,7 +56,7 @@ class SecretsHelperTest < Minitest::Test
     src = 'Rakefile'
     dest = 's3://sbi-secrets-qa/Rakefile.enc'
     key_alias = 'alias/sbi/app-secrets'
-    `bundle exec bin/secretshelper s3 cp #{src} #{dest} --key-alias #{key_alias}`
+    `bundle exec bin/hydan s3 cp #{src} #{dest} --key-alias #{key_alias}`
     assert true
   end
 
@@ -65,7 +65,7 @@ class SecretsHelperTest < Minitest::Test
   def test_that_local_encryption_works
     plaintext = 'Testing local encryption logic via CLI'
     key = 'RhZA5KhWaBJqRj1xQwjnQprKziM8p5jsjVcIyB2H5Jg='
-    `echo '#{plaintext}' | bundle exec bin/secretshelper encrypt --key #{key}`
+    `echo '#{plaintext}' | bundle exec bin/hydan encrypt --key #{key}`
     assert true
   end
 
@@ -88,7 +88,7 @@ class SecretsHelperTest < Minitest::Test
     }
     EOS
     key = 'RhZA5KhWaBJqRj1xQwjnQprKziM8p5jsjVcIyB2H5Jg='
-    plaintext = `echo '#{ciphertext}' | bundle exec bin/secretshelper decrypt --key #{key}`
+    plaintext = `echo '#{ciphertext}' | bundle exec bin/hydan decrypt --key #{key}`
     assert plaintext == "Testing local encryption via CLI\n"
   end
 

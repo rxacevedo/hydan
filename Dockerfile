@@ -6,4 +6,4 @@ WORKDIR /usr/src/app
 
 RUN bundle install
 
-ENTRYPOINT ["bundle", "exec", "bin/secretshelper"]
+ENTRYPOINT ["bundle", "exec", "bin/hydan"]

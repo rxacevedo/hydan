@@ -1,4 +1,4 @@
-module SecretsHelper
+module Hydan
   class CLIBase < Thor
     def self.shared_options
       method_option(
@@ -36,7 +36,7 @@ module SecretsHelper
 
   class CLI < CLIBase
 
-    include SecretsHelper::Crypto
+    include Hydan::IO
     LOGGER       = Logger.new(STDOUT)
     LOGGER.level = Logger::INFO
 
@@ -54,7 +54,7 @@ module SecretsHelper
         invoke :encrypt_file
       else
         master_key = Base64.strict_decode64(options[:master_key])
-        client = SecretsHelper::Crypto::EncryptionHelper.new(master_key)
+        client = Hydan::Crypto::EncryptionHelper.new(master_key)
         data = handle_input(options)
         json = client.encrypt(data) unless options[:env_formatted]
         json = client.encrypt_env_formatted(data) if options[:env_formatted]
@@ -73,7 +73,7 @@ module SecretsHelper
     )
     def encrypt_file(*args)
       master_key = Base64.strict_decode64(options[:master_key])
-      client = SecretsHelper::Crypto::EncryptionHelper.new(master_key)
+      client = Hydan::Crypto::EncryptionHelper.new(master_key)
       encrypted_data_key_blob = client.encrypt_file(
         options[:in],
         options[:out]
@@ -95,7 +95,7 @@ module SecretsHelper
         invoke :decrypt_file
       else
         key = Base64.strict_decode64(options[:master_key])
-        client = SecretsHelper::Crypto::DecryptionHelper.new(key)
+        client = Hydan::Crypto::DecryptionHelper.new(key)
         data = handle_input(options)
         plaintext = client.decrypt(data) unless options[:env_formatted]
         plaintext = client.decrypt_env_file(data) if options[:env_formatted]
@@ -116,15 +116,15 @@ module SecretsHelper
       master_key = Base64.strict_decode64(options[:master_key])
       data_key = Base64.strict_decode64(options[:key])
       # TODO: Clear keys
-      client = SecretsHelper::Crypto::DecryptionHelper.new(master_key)
+      client = Hydan::Crypto::DecryptionHelper.new(master_key)
       client.decrypt_file(options[:in], options[:out], data_key)
     end
 
     desc 's3', 'Use the S3 API'
-    subcommand 's3', SecretsHelper::S3::S3Cmd
+    subcommand 's3', Hydan::S3::S3Cmd
 
     desc 'kms', 'Use the KMS API for encryption/decryption'
-    subcommand 'kms', SecretsHelper::Crypto::KMS::KMSCmd
+    subcommand 'kms', Hydan::Crypto::KMS::KMSCmd
 
   end
 end

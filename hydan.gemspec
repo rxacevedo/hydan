@@ -1,11 +1,11 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'secretshelper/version'
+require 'hydan/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "secretshelper"
-  spec.version       = SecretsHelper::VERSION
+  spec.name          = "hydan"
+  spec.version       = Hydan::VERSION
   spec.authors       = ["Roberto Acevedo"]
   spec.email         = ["rxacevedo@fastmail.com"]
 
@@ -31,7 +31,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "minitest", "~> 5.0"
   spec.add_development_dependency "pry", "~> 0.10"
-  # spec.add_development_dependency "pry-doc", ">= 0.6.0"
+  spec.add_development_dependency "pry-doc", ">= 0.6.0"
   spec.add_development_dependency "yard"
 
   spec.add_dependency "thor"

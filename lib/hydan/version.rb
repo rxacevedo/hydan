@@ -1,3 +1,3 @@
-module SecretsHelper
+module Hydan
   VERSION = "0.1.0"
 end
