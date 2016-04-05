@@ -37,15 +37,15 @@ module SecretsHelper
       # #   payload (ciphertext, IV, salt, etc) and an encrypted
       # #   data key that was used to encrypt the ciphertext
       # # @return [String]
-      # def decrypt_env_file(env_body)
-      #   new_text = []
-      #   env_body.each_line do |l|
-      #     k, v = l.match(ENV_LINE_REGEX).captures
-      #     dec_v = decrypt(v)
-      #     new_text << "#{k}=#{dec_v}"
-      #   end
-      #   new_text
-      # end
+      def decrypt_env_file(env_body)
+        new_text = []
+        env_body.each_line do |l|
+          k, v = l.match(ENV_LINE_REGEX).captures
+          dec_v = decrypt(v)
+          new_text << "#{k}=#{dec_v}"
+        end
+        new_text
+      end
     end
   end
 end
