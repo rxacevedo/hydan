@@ -12,9 +12,9 @@ module SecretsHelper
       text = options[:plaintext].join ' ' if options[:plaintext]
       unless options[:plaintext]
         text = ''
-        text << $LAST_READ_LINE while $stdin.gets unless $stdin.tty?
+        text << $LAST_READ_LINE while $stdin.gets # unless $stdin.tty?
       end
-      raise ArgumentError.new('No plaintext specified') if text.empty?
+      # raise ArgumentError.new('No plaintext specified') if text.empty?
       text
     end
 

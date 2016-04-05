@@ -2,7 +2,7 @@ module SecretsHelper
   class CLIBase < Thor
     def self.shared_options
       method_option(
-        :key,
+        :master_key,
         :type => :string,
         :desc => 'The symmetric master key used to encrypt the exported data key',
         :required => true
@@ -43,11 +43,17 @@ module SecretsHelper
     desc 'encrypt', 'Encrypt a string or file'
     shared_options
     shared_text_options
+    # This is only here to support branching over to encrypt-file
+    method_option(
+      :in,
+      :type => :string,
+      :desc => 'The file being encrypted'
+    )
     def encrypt(*args)
       if options[:in]
         invoke :encrypt_file
       else
-        master_key = Base64.strict_decode64(options[:key])
+        master_key = Base64.strict_decode64(options[:master_key])
         client = SecretsHelper::Crypto::EncryptionHelper.new(master_key)
         data = handle_input(options)
         json = client.encrypt(data) unless options[:env_formatted]
@@ -59,6 +65,7 @@ module SecretsHelper
     desc 'encrypt-file', 'Encrypt a file'
     shared_options
     shared_file_options
+    # Only used for file encryption
     method_option(
       :key_out,
       :type => :string,
@@ -68,8 +75,8 @@ module SecretsHelper
       master_key = Base64.strict_decode64(options[:master_key])
       client = SecretsHelper::Crypto::EncryptionHelper.new(master_key)
       encrypted_data_key_blob = client.encrypt_file(
-        options[:file],
-        options[:out_file]
+        options[:in],
+        options[:out]
       )
       handle_key_output(encrypted_data_key_blob, options[:key_out])
     end
@@ -77,11 +84,17 @@ module SecretsHelper
     desc 'decrypt', 'Decrypt a string or file'
     shared_options
     shared_text_options
+    # This is only here to support branching over to encrypt-file
+    method_option(
+      :in,
+      :type => :string,
+      :desc => 'The file being encrypted'
+    )
     def decrypt(*args)
-      if options[:file]
+      if options[:in]
         invoke :decrypt_file
       else
-        key = Base64.strict_decode64(options[:key])
+        key = Base64.strict_decode64(options[:master_key])
         client = SecretsHelper::Crypto::DecryptionHelper.new(key)
         data = handle_input(options)
         plaintext = client.decrypt(data) unless options[:env_formatted]
@@ -93,10 +106,18 @@ module SecretsHelper
     desc 'decrypt-file', 'Decrypt a file'
     shared_options
     shared_file_options
+    method_option(
+      :key,
+      :type => :string,
+      :desc => 'The data key used to decrypt encypted data',
+      :required => true
+    )
     def decrypt_file(*args)
-      key = Base64.strict_decode64(options[:key]) # TODO: Accept either file or plaintext (Base64) keys
-      client = SecretsHelper::Crypto::DecryptionHelper.new(key)
-      client.decrypt_file(options[:in], options[:out], key)
+      master_key = Base64.strict_decode64(options[:master_key])
+      data_key = Base64.strict_decode64(options[:key])
+      # TODO: Clear keys
+      client = SecretsHelper::Crypto::DecryptionHelper.new(master_key)
+      client.decrypt_file(options[:in], options[:out], data_key)
     end
 
     desc 's3', 'Use the S3 API'
