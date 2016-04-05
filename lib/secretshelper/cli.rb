@@ -1,37 +1,70 @@
 module SecretsHelper
+  class CLIBase < Thor
+    def self.shared_options
+      method_option(
+        :key,
+        :type => :string,
+        :desc => 'The symmetric master key used to encrypt the exported data key',
+        :required => true
+      )
+    end
+    def self.shared_text_options
+      method_option(
+        :env_formatted,
+        :type => :boolean,
+        :desc => 'Indicates that the input is .env formatted (K=V). Results in K=encrypt(V) output.'
+      )
+      method_option(
+        :text,
+        :type => :array,
+        :desc => 'The plaintext to be encrypted'
+      )
+    end
+    def self.shared_file_options
+      method_option(
+        :in,
+        :type => :string,
+        :desc => 'The file being encrypted'
+      )
+      method_option(
+        :out,
+        :type => :string,
+        :desc => 'Where the encrypted content should be written'
+      )
+    end
+  end
+
   class CLI < Thor
 
     include SecretsHelper::Crypto
     LOGGER       = Logger.new(STDOUT)
     LOGGER.level = Logger::INFO
 
-    desc 'encrypt', 'Encrypts a string or file'
-    method_option :file, :type => :string # Only used for branching to encrypt_file
-    method_option :env_formatted, :type => :boolean
-    method_option :plaintext, :type => :array
-    method_option :out_file, :type => :string
-    method_option :key_out, :type => :string
-    method_option :master_key, :type => :string, :required => true
+    desc 'encrypt', 'Encrypt a string or file'
+    SecretsHelper::CLIBase.shared_options
+    SecretsHelper::CLIBase.shared_text_options
     def encrypt(*args)
-      if options[:file]
+      if options[:in]
         invoke :encrypt_file
       else
-        master_key = Base64.strict_decode64(options[:master_key])
+        master_key = Base64.strict_decode64(options[:key])
         client = SecretsHelper::Crypto::EncryptionHelper.new(master_key)
-        text = handle_stdin
-        json = client.encrypt(text) unless options[:env_formatted]
-        json = client.encrypt_env_formatted(text) if options[:env_formatted]
+        data = handle_stdin(options)
+        json = client.encrypt(data) unless options[:env_formatted]
+        json = client.encrypt_env_formatted(data) if options[:env_formatted]
         handle_output(json)
       end
     end
 
-    desc 'encrypt-file', 'Decrypt a file'
-    method_option :file, :type => :string, :required => true
-    method_option :out_file, :type => :string, :required => true
-    method_option :key_out, :type => :string
-    method_option :master_key, :type => :string, :required => true
+    desc 'encrypt-file', 'Encrypt a file'
+    SecretsHelper::CLIBase.shared_options
+    SecretsHelper::CLIBase.shared_file_options
+    method_option(
+      :key_out,
+      :type => :string,
+      :desc => 'Where the encrypted data key should be written'
+    )
     def encrypt_file(*args)
-      puts "WE OUT THERE"
       master_key = Base64.strict_decode64(options[:master_key])
       client = SecretsHelper::Crypto::EncryptionHelper.new(master_key)
       encrypted_data_key_blob = client.encrypt_file(
@@ -41,12 +74,9 @@ module SecretsHelper
       handle_key_output(encrypted_data_key_blob, options[:key_out])
     end
 
-
-    desc 'decrypt', 'Decrypts a string or file'
-    method_option :file, :type => :string
-    method_option :env_formatted, :type => :boolean
-    method_option :out, :type => :string
-    method_option :key, :type => :string, :required => true
+    desc 'decrypt', 'Decrypt a string or file'
+    SecretsHelper::CLIBase.shared_options
+    SecretsHelper::CLIBase.shared_text_options
     def decrypt(*args)
       if options[:file]
         invoke :decrypt_file
@@ -60,12 +90,13 @@ module SecretsHelper
       end
     end
 
-    desc 'decrypt-file', 'Decrypts a file'
+    desc 'decrypt-file', 'Decrypt a file'
+    SecretsHelper::CLIBase.shared_options
+    SecretsHelper::CLIBase.shared_file_options
     def decrypt_file(*args)
-      file = File.open(options[:file], 'r')
-      plaintext = client.decrypt(file.read) unless options[:env_formatted]
-      plaintext = client.decrypt_env_file(file.read) if options[:env_formatted]
-      handle_output(plaintext)
+      key = Base64.strict_decode64(options[:key]) # TODO: Accept either file or plaintext (Base64) keys
+      client = SecretsHelper::Crypto::DecryptionHelper.new(key)
+      client.decrypt_file(options[:in], options[:out], key)
     end
 
     desc 's3', 'Use the S3 API'

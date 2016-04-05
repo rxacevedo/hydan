@@ -8,7 +8,7 @@ module SecretsHelper
     # Reads text from STDIN, or uses the value supplied with
     # --plaintext, if any. Returns the text.
     # @return [String]
-    def handle_stdin
+    def handle_input(options)
       text = options[:plaintext].join ' ' if options[:plaintext]
       unless options[:plaintext]
         text = ''
