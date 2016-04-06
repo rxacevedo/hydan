@@ -57,6 +57,46 @@ hydan encrypt --master-key $KEY --text 'This also works' | hydan decrypt --maste
 This also works
 ```
 
+#### Env files
+A common use case (actually, the reason that this utility was even written) for setting up credentials is through environment variables. To accomodate this, `hydan` supports `--env-formatted` text input. When this flag is passed in, K/V pairs are parsed from each line, and the value (V) is encrypted. This allows for a file to be partially encrypted in a way that hides sensitive information, while still allowing an administrator or operator to understand what the file is for.
+
+```
+KEY=$(head -c 32 /dev/urandom | base64)
+cat test.env
+FOO=bar
+BAR=baz
+BAZ=bat
+A=B
+ENV=ENV
+K=V
+
+hydan encrypt --env-formatted --master-key $KEY < test.env
+FOO={"ciphertext":{"v":1,"adata":"","ks":256,"ct":"fnu8Ulyr5JLQArNp5rLz","ts":96,"mode":"gcm","cipher":"aes","iter":100000,"iv":"MOZzAZ/9qtHMCr/t","salt":"37WkVaQQxDA="},"data_key":"eyJ2IjoxLCJhZGF0YSI6IiIsImtzIjoyNTYsImN0IjoiMjFjZ21kM21PbUxBL20xdUt1bDJHNXV5VUhkaXFLQlZhSGlCQ2NzVnczbG5mUnY0Y05SSHRRMFFWVUE9IiwidHMiOjk2LCJtb2RlIjoiZ2NtIiwiY2lwaGVyIjoiYWVzIiwiaXRlciI6MTAwMDAwLCJpdiI6IkNRSkNJanlKVW9pR0kzbHQiLCJzYWx0IjoibS94a2trSm85Nzg9In0="}
+BAR={"ciphertext":{"v":1,"adata":"","ks":256,"ct":"F9oTm34xCj5Ke68hB+rL","ts":96,"mode":"gcm","cipher":"aes","iter":100000,"iv":"uXP2BC9wyCyJiFy6","salt":"DLDWXIxsbv8="},"data_key":"eyJ2IjoxLCJhZGF0YSI6IiIsImtzIjoyNTYsImN0IjoiYWRRdC9reFQzS2FwSG9FWFlzclJ6bmhqdlcxYVVGdWtQd0xRZXJZTUdTMDF0WFY1RSsyRkRBZndndDA9IiwidHMiOjk2LCJtb2RlIjoiZ2NtIiwiY2lwaGVyIjoiYWVzIiwiaXRlciI6MTAwMDAwLCJpdiI6Ii9SbnFWWkZTR0EwQkw0UEEiLCJzYWx0IjoiSHYxeEd0eTZLcTQ9In0="}
+BAZ={"ciphertext":{"v":1,"adata":"","ks":256,"ct":"VZ3qtRrRYVRIhJ3qIyku","ts":96,"mode":"gcm","cipher":"aes","iter":100000,"iv":"Ib19BVMCP3VqoeQ+","salt":"9DRsMkbtRvo="},"data_key":"eyJ2IjoxLCJhZGF0YSI6IiIsImtzIjoyNTYsImN0IjoieDcrdklNazBCYThnbWlMMGZ3WHE0TGpMVkNUYVBjaFhZWDFSUUkrL2oraGlBR2V0b3BxS0w2ZG5CbUU9IiwidHMiOjk2LCJtb2RlIjoiZ2NtIiwiY2lwaGVyIjoiYWVzIiwiaXRlciI6MTAwMDAwLCJpdiI6IkgzTXlEcXB4SXUrMGNoVTgiLCJzYWx0IjoiN0RSYzZmWkZWcFE9In0="}
+A={"ciphertext":{"v":1,"adata":"","ks":256,"ct":"6Hqk69PLuImnpTWSjw==","ts":96,"mode":"gcm","cipher":"aes","iter":100000,"iv":"oy5lea/k99nsZz8/","salt":"yYrMK6MbXfQ="},"data_key":"eyJ2IjoxLCJhZGF0YSI6IiIsImtzIjoyNTYsImN0IjoiN3gySUZIZmk2NjB6VnpqWDd4MjJqTUlHeXdZclRuY3E1cGdOcHU1RTB2R2I3MWMvbVp3ZjR0cUxtSk09IiwidHMiOjk2LCJtb2RlIjoiZ2NtIiwiY2lwaGVyIjoiYWVzIiwiaXRlciI6MTAwMDAwLCJpdiI6IkJ1a1lBRGJhaHVvcDJuM2YiLCJzYWx0IjoiKzhVOWhiaUtCRmc9In0="}
+ENV={"ciphertext":{"v":1,"adata":"","ks":256,"ct":"FQfnNaMl936fhZo3Ykrx","ts":96,"mode":"gcm","cipher":"aes","iter":100000,"iv":"12QqZqCxkvMbagzo","salt":"A3YypAcXUIQ="},"data_key":"eyJ2IjoxLCJhZGF0YSI6IiIsImtzIjoyNTYsImN0IjoiL2xpM0NnaG5BUmJCM3NmMlA5aTNLRXd3eFBITk9HQVFTdFBzVHFWUXRIZGRBRHNOL0wzV1Jrc3dIbGM9IiwidHMiOjk2LCJtb2RlIjoiZ2NtIiwiY2lwaGVyIjoiYWVzIiwiaXRlciI6MTAwMDAwLCJpdiI6ImFEK1dIZEwwWnlzbmJ5d0QiLCJzYWx0IjoiZ3hlL3dYVU9GRmM9In0="}
+K={"ciphertext":{"v":1,"adata":"","ks":256,"ct":"wpSRhDud1zqxhlvqdQ==","ts":96,"mode":"gcm","cipher":"aes","iter":100000,"iv":"9WnyuuOx2q6J/KCR","salt":"kZNxqsQE8o0="},"data_key":"eyJ2IjoxLCJhZGF0YSI6IiIsImtzIjoyNTYsImN0IjoiWHpsSWEzZEVoeWNHQ0lDQTJvU2xZem93SFZUeU1CVGUyb1dwNkVZcm9JamR4azg4SnVXci9USlIxaUE9IiwidHMiOjk2LCJtb2RlIjoiZ2NtIiwiY2lwaGVyIjoiYWVzIiwiaXRlciI6MTAwMDAwLCJpdiI6IkUxdGNNT0E0YkpBSzlEdGMiLCJzYWx0IjoibzRZcjQ5U3NhVU09In0="}
+
+# --env-formatted plays nicely with pipes too
+hydan encrypt --env-formatted --master-key $KEY < test.env | hydan decrypt --env-formatted --master-key $KEY
+FOO=bar
+BAR=baz
+BAZ=bat
+A=B
+ENV=ENV
+K=V
+
+# This can easily be used to construct export statements to be evaluated via eval
+hydan encrypt --env-formatted --master-key $KEY < test.env | hydan decrypt --env-formatted --master-key $KEY | awk '{ print "export " $1 }'
+export FOO=bar
+export BAR=baz
+export BAZ=bat
+export A=B
+export ENV=ENV
+export K=V
+```
+
 #### Large files
 When files are too large to read into memory, use the `--in` and `--out` flags. This will prompt `hydan` to use logic that reads and encrypts the file line-by-line, as opposed to "slurping" the file beforehand. This also implies that it's not worth Base64 encoding the encrypted output, since it will also be large. Because of this, encryption that uses the `--in` flag saves it's output in binary instead of Base64.
 
