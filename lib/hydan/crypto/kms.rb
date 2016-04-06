@@ -1,16 +1,17 @@
 module Hydan
   module Crypto
     module KMS
+      # I think there are some path resolution issues going on here
+      require 'hydan/io'
       class KMSCmd < Thor
 
-        include Hydan::Crypto
-        # TODO: --plaintext would be better represented by --data
+        include Hydan::IO
         desc 'encrypt', 'Encrypt a string or file'
         method_option :env_formatted, :type => :boolean
         method_option :file, :type => :string
         method_option :key_alias, :type => :string, :required => true
         method_option :out, :type => :string
-        method_option :plaintext, :type => :array
+        method_option :text, :type => :array
         def encrypt(*args)
           client = Hydan::Crypto::KMS::EncryptionHelper.new
           kms_key_id = client.get_kms_key_id options[:key_alias]

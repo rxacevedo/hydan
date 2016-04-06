@@ -107,14 +107,14 @@ module Hydan
     shared_options
     shared_file_options
     method_option(
-      :key,
+      :data_key,
       :type => :string,
       :desc => 'The data key used to decrypt encypted data',
       :required => true
     )
     def decrypt_file(*args)
       master_key = Base64.strict_decode64(options[:master_key])
-      data_key = Base64.strict_decode64(options[:key])
+      data_key = Base64.strict_decode64(options[:data_key])
       # TODO: Clear keys
       client = Hydan::Crypto::DecryptionHelper.new(master_key)
       client.decrypt_file(options[:in], options[:out], data_key)

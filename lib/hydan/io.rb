@@ -6,8 +6,8 @@ module Hydan
     # --plaintext, if any. Returns the text.
     # @return [String]
     def handle_input(options)
-      text = options[:plaintext].join ' ' if options[:plaintext]
-      unless options[:plaintext]
+      text = options[:text].join ' ' if options[:text]
+      unless options[:text]
         text = ''
         text << $LAST_READ_LINE while $stdin.gets # unless $stdin.tty?
       end

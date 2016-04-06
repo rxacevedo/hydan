@@ -9,6 +9,7 @@ module Hydan
       def initialize(master_key)
         @master_key = master_key
         @generator = OpenSSL::Cipher.new(Crypto::DEFAULT_CIPHER)
+        @generator.encrypt
       end
 
       # Returns a JSON string containing the ciphertext (Base64 encoded)
