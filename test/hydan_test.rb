@@ -1,8 +1,8 @@
 require 'test_helper'
 
-class SecretsHelperTest < Minitest::Test
+class HydanTest < Minitest::Test
   def test_that_it_has_a_version_number
-    refute_nil ::SecretsHelper::VERSION
+    refute_nil ::Hydan::VERSION
   end
 
   ## AWS integration tests (these tests reqiure Internet access/valid AWS credentials)
@@ -17,7 +17,7 @@ class SecretsHelperTest < Minitest::Test
   def test_that_kms_encryption_via_plaintext_flag_works
     plaintext = 'CLI plaintext 1234567890 --==!@#$%^&*()_+'
     key_alias = 'alias/sbi/app-secrets'
-    `bundle exec bin/hydan kms encrypt --key-alias #{key_alias} --plaintext '#{plaintext}'`
+    `bundle exec bin/hydan kms encrypt --key-alias #{key_alias} --text '#{plaintext}'`
     assert true
   end
 
@@ -65,7 +65,7 @@ class SecretsHelperTest < Minitest::Test
   def test_that_local_encryption_works
     plaintext = 'Testing local encryption logic via CLI'
     key = 'RhZA5KhWaBJqRj1xQwjnQprKziM8p5jsjVcIyB2H5Jg='
-    `echo '#{plaintext}' | bundle exec bin/hydan encrypt --key #{key}`
+    `echo '#{plaintext}' | bundle exec bin/hydan encrypt --master-key #{key}`
     assert true
   end
 
@@ -88,7 +88,7 @@ class SecretsHelperTest < Minitest::Test
     }
     EOS
     key = 'RhZA5KhWaBJqRj1xQwjnQprKziM8p5jsjVcIyB2H5Jg='
-    plaintext = `echo '#{ciphertext}' | bundle exec bin/hydan decrypt --key #{key}`
+    plaintext = `echo '#{ciphertext}' | bundle exec bin/hydan decrypt --master-key #{key}`
     assert plaintext == "Testing local encryption via CLI\n"
   end
 
@@ -97,7 +97,7 @@ class SecretsHelperTest < Minitest::Test
   def test_that_local_encryption_logic_works
     plaintext = %{We gon' TEST THIS}
     symmetric_key = `head -c 32 /dev/urandom`
-    client = SecretsHelper::Crypto::EncryptionHelper.new(symmetric_key)
+    client = Hydan::Crypto::EncryptionHelper.new(symmetric_key)
     client.encrypt(plaintext)
     assert true
   end
@@ -121,7 +121,7 @@ class SecretsHelperTest < Minitest::Test
       "data_key": "eyJ2IjoxLCJhZGF0YSI6IiIsImtzIjoyNTYsImN0IjoiTXFtcWdsdTlYcnJMVTdNaUdsYU03QjlDMlJTWU5ydjFjUWE4TG8vN2pmUFZZU3dBdkVMY0dHQnZwbms9IiwidHMiOjk2LCJtb2RlIjoiZ2NtIiwiY2lwaGVyIjoiYWVzIiwiaXRlciI6MTAwMDAwLCJpdiI6Iis5TytlVUp2WDQ3MUhlVDkiLCJzYWx0IjoiUHFCMUdZdGZHU0E9In0="
     }
     EOS
-    client = SecretsHelper::Crypto::DecryptionHelper.new(symmetric_key)
+    client = Hydan::Crypto::DecryptionHelper.new(symmetric_key)
     decrypted = client.decrypt(ciphertext)
     assert decrypted == %{We gon' TEST THIS}
   end
@@ -129,12 +129,12 @@ class SecretsHelperTest < Minitest::Test
   # Utility logic tests
 
   def test_that_path_parsing_s3_works
-    res = SecretsHelper::S3::S3Helper.parse_path('s3://bogus/a/b/c/object') == SecretsHelper::PathTypes::S3
+    res = Hydan::S3::S3Helper.parse_path('s3://bogus/a/b/c/object') == Hydan::PathTypes::S3
     assert res
   end
 
   def test_that_path_parsing_unix_works
-    res = SecretsHelper::S3::S3Helper.parse_path('/usr') == SecretsHelper::PathTypes::UNIX
+    res = Hydan::S3::S3Helper.parse_path('/usr') == Hydan::PathTypes::UNIX
     assert res
   end
 end
