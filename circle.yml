@@ -6,7 +6,8 @@ machine:
 
 dependencies:
   override:
-    - gem install rubocop bundler
+    - gem install bundler
+    - gem install rubocop 
     - bundle install
     - | # Testing
       for v in ${TARGETS[*]}; do echo $v; done
