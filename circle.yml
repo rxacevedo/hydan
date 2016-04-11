@@ -6,15 +6,18 @@ machine:
 
 dependencies:
   override:
-    - gem install bundler
-    - gem install rubocop 
+    - gem install rubocop
     - bundle install
     - | # Testing
-      for v in ${TARGETS[*]}; do echo $v; done
+      for v in ${TARGETS[*]}; do
+        echo "Building version $v..."
+        sed "s/#VERSION#/$v" Dockerfile.tpl > Dockerfile
+        docker build -t $REGISTRY_URL/seibelsbi/docker-hydan:$v .
+      done
 
 test:
   override:
-    - rake ci_test
+    - docker run -it --entrypoint bash $REGISTRY_URL/seibelsbi/docker-hydan:2.1 -c 'rake ci_test'
 
 deployment:
   master:
