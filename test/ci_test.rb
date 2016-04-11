@@ -70,4 +70,20 @@ class HydanCITest < Minitest::Test
     decrypted = client.decrypt(ciphertext)
     assert decrypted == %{We gon' TEST THIS}
   end
+
+  def test_that_local_file_encryption_works
+    puts "Generating random test data..."
+    `head -c 32000000 /dev/urandom > random.dat`
+    puts "Reading random test data..."
+    text = File.open('random.dat', 'rb').read
+    puts "Generating random key..."
+    key = `head -c 32 /dev/urandom | base64`
+    puts "Key: #{key}"
+    puts "Encrypting random data..."
+    `hydan encrypt --master-key #{key} --in random.dat --out random.dat.enc --key-out data.key`
+    puts "Decrypting random data..."
+    `hydan decrypt --master-key #{key} --in random.dat.enc --out random.dat.dec --data-key $(base64 < data.key)`
+    decrypted = File.open('random.dat.dec', 'rb')
+    assert text == decrypted
+  end
 end
