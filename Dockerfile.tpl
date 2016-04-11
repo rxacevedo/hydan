@@ -5,5 +5,6 @@ COPY . /usr/src/app
 WORKDIR /usr/src/app
 
 RUN bundle install
+RUN rake install
 
-ENTRYPOINT ["bundle", "exec", "bin/hydan"]
+ENTRYPOINT ["hydan"]

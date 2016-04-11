@@ -10,7 +10,7 @@ class HydanCITest < Minitest::Test
   def test_that_local_encryption_works
     plaintext = 'Testing local encryption logic via CLI'
     key = 'RhZA5KhWaBJqRj1xQwjnQprKziM8p5jsjVcIyB2H5Jg='
-    `echo '#{plaintext}' | bundle exec bin/hydan encrypt --master-key #{key}`
+    `echo '#{plaintext}' | hydan encrypt --master-key #{key}`
     assert true
   end
 
@@ -33,7 +33,7 @@ class HydanCITest < Minitest::Test
     }
     EOS
     key = 'RhZA5KhWaBJqRj1xQwjnQprKziM8p5jsjVcIyB2H5Jg='
-    plaintext = `echo '#{ciphertext}' | bundle exec bin/hydan decrypt --master-key #{key}`
+    plaintext = `echo '#{ciphertext}' | hydan decrypt --master-key #{key}`
     assert plaintext == "Testing local encryption via CLI\n"
   end
 
@@ -69,17 +69,5 @@ class HydanCITest < Minitest::Test
     client = Hydan::Crypto::DecryptionHelper.new(symmetric_key)
     decrypted = client.decrypt(ciphertext)
     assert decrypted == %{We gon' TEST THIS}
-  end
-
-  # Utility logic tests
-
-  def test_that_path_parsing_s3_works
-    res = Hydan::S3::S3Helper.parse_path('s3://bogus/a/b/c/object') == Hydan::PathTypes::S3
-    assert res
-  end
-
-  def test_that_path_parsing_unix_works
-    res = Hydan::S3::S3Helper.parse_path('/usr') == Hydan::PathTypes::UNIX
-    assert res
   end
 end
