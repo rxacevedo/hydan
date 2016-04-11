@@ -7,7 +7,7 @@ machine:
 dependencies:
   override:
     - gem install rubocop
-    - | # Testing
+    - | # Build required images
       for v in ${TARGETS[*]}; do
         echo "Building version $v..."
         sed "s/#VERSION#/$v/g" Dockerfile.tpl > Dockerfile
@@ -17,6 +17,8 @@ dependencies:
 test:
   override:
     - docker run -it --entrypoint bash $REGISTRY_URL/seibelsbi/docker-hydan:2.1 -c 'rake ci_test'
+    - docker run -it --entrypoint bash $REGISTRY_URL/seibelsbi/docker-hydan:2.2 -c 'rake ci_test'
+    - docker run -it --entrypoint bash $REGISTRY_URL/seibelsbi/docker-hydan:2.3 -c 'rake ci_test'
 
 deployment:
   master:
