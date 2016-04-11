@@ -7,11 +7,10 @@ machine:
 dependencies:
   override:
     - gem install rubocop
-    - bundle install
     - | # Testing
       for v in ${TARGETS[*]}; do
         echo "Building version $v..."
-        sed "s/#VERSION#/$v" Dockerfile.tpl > Dockerfile
+        sed "s/#VERSION#/$v/g" Dockerfile.tpl > Dockerfile
         docker build -t $REGISTRY_URL/seibelsbi/docker-hydan:$v .
       done
 
