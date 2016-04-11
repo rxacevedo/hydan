@@ -1,60 +1,8 @@
 require 'test_helper'
 
-class HydanTest < Minitest::Test
-
-  ## AWS integration tests (these tests reqiure Internet access/valid AWS credentials)
-
-  def test_that_kms_encryption_via_stdin_works
-    plaintext = 'This is the plaintext'
-    key_alias = 'alias/sbi/app-secrets'
-    `echo #{plaintext} | bundle exec bin/hydan kms encrypt --key-alias #{key_alias}`
-    assert true
-  end
-
-  def test_that_kms_encryption_via_plaintext_flag_works
-    plaintext = 'CLI plaintext 1234567890 --==!@#$%^&*()_+'
-    key_alias = 'alias/sbi/app-secrets'
-    `bundle exec bin/hydan kms encrypt --key-alias #{key_alias} --text '#{plaintext}'`
-    assert true
-  end
-
-  def test_that_kms_decryption_via_stdin_works
-    ciphertext = <<-EOS
-    {
-      "ciphertext": {
-        "v": 1,
-        "adata": "",
-        "ks": 256,
-        "ct": "VDrNx9XDJaefv+h0QljKI4923Cpc+helJcdCntoFYhiEMw==",
-        "ts": 96,
-        "mode": "gcm",
-        "cipher": "aes",
-        "iter": 100000,
-        "iv": "rvHRtCQPCqEoNXex",
-        "salt": "lsQGF0/8EN0="
-      },
-      "data_key": "CiAfOVbeihf6rOyP611suE9ul/zYfZ1DY8k89owZgq5L9BKnAQEBAwB4HzlW3ooX+qzsj+tdbLhPbpf82H2dQ2PJPPaMGYKuS/QAAAB+MHwGCSqGSIb3DQEHBqBvMG0CAQAwaAYJKoZIhvcNAQcBMB4GCWCGSAFlAwQBLjARBAzpI8QPtKgo6lwd4WkCARCAOxpxb1zOM1g0lLWhJorMvOHBuYTZH7klr76I5M9cvXuWMMIDTBamLWCAT92bcSj+H6no0JjyJheus+Fu"
-    }
-    EOS
-    decrypted = `bundle exec echo '#{ciphertext}' | bin/hydan kms decrypt`
-    assert decrypted == "This is the plaintext\n"
-  end
-
-  # Copies a file from this repo to S3, should succeed silently
-  def test_that_s3_copy_works
-    src = 'Rakefile'
-    dest = 's3://sbi-secrets-qa/Rakefile'
-    `bundle exec bin/hydan s3 cp #{src} #{dest}`
-    assert true
-  end
-
-  # Copies and encrypts a file to S3, should succeed silently
-  def test_that_s3_encrypted_copy_works
-    src = 'Rakefile'
-    dest = 's3://sbi-secrets-qa/Rakefile.enc'
-    key_alias = 'alias/sbi/app-secrets'
-    `bundle exec bin/hydan s3 cp #{src} #{dest} --key-alias #{key_alias}`
-    assert true
+class HydanCITest < Minitest::Test
+  def test_that_it_has_a_version_number
+    refute_nil ::Hydan::VERSION
   end
 
   ## Local integration tests

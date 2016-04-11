@@ -1,4 +1,4 @@
-FROM ruby:2.1
+FROM ruby:#VERSION#
 MAINTAINER "rxacevedo@fastmail.com"
 
 COPY . /usr/src/app

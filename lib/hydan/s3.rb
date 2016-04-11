@@ -42,7 +42,7 @@ module Hydan
 
     # Wrapper class surrounding common S3 functions
     class S3Helper
-      S3_PATH_REGEX = /s3:\/\/(.*?)\/(.*)/
+      S3_PATH_REGEX = %r{s3:\/\/(.*?)\/(.*)}
 
       # Initialize the S3Helper object. When a kms_key_id is given, the
       # client uses an Aws::S3::Encrpytion::Client. If omitted, a regular
