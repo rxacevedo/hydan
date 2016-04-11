@@ -1,12 +1,13 @@
 machine:
   environment:
-    TARGETS: ('2.1' '2.2' '2.3')
+    TARGETS: '2.1' '2.2' '2.3'
   services:
     - docker
 
 dependencies:
   override:
     - gem install rubocop bundler
+    - bundle install
     - | # Testing
       for v in ${TARGETS[*]}; do echo $v; done
 
