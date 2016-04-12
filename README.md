@@ -1,8 +1,11 @@
 # Hydan
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/hydan`. To experiment with that code, run `bin/console` for an interactive prompt.
+Hydan is a command-line utility for encrypting and decrypting text and/or files. In addition to local crypto operations, Hydan can also defer to Amazon KMS for symmetric master keys. S3 uploads/downloads are also supported, and can leverage KMS for encryption/decryption.
 
-TODO: Delete this and the text above, and describe your gem
+## TODO:
+
+- [ ] Support multi-part uploads for S3
+- [ ] Support SSE for S3 uploads
 
 ## Installation
 
