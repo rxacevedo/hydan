@@ -71,19 +71,22 @@ class HydanCITest < Minitest::Test
     assert decrypted == %{We gon' TEST THIS}
   end
 
-  def test_that_local_file_encryption_works
+  def test_that_local_file_encryption_and_decryption_works
+    key = 'UH6L9Cn1qicD7zsefs4WGA5VzjcS5kLWiqSiW0cDTko='
+    puts "Key: #{key}"
     puts "Generating random test data..."
     `head -c 32000000 /dev/urandom > random.dat`
-    puts "Reading random test data..."
-    text = File.open('random.dat', 'rb').read
-    puts "Generating random key..."
-    key = `head -c 32 /dev/urandom | base64`
-    puts "Key: #{key}"
     puts "Encrypting random data..."
-    `hydan encrypt --master-key #{key} --in random.dat --out random.dat.enc --key-out data.key`
+    encrypt_cmd = %W{hydan encrypt --master-key #{key} --in random.dat --out random.dat.enc --key-out data.key}
+    system *encrypt_cmd
     puts "Decrypting random data..."
-    `hydan decrypt --master-key #{key} --in random.dat.enc --out random.dat.dec --data-key $(base64 < data.key)`
-    decrypted = File.open('random.dat.dec', 'rb')
-    assert text == decrypted
+    data_key = `base64 < data.key | tr -d '\n'`
+    decrypt_cmd = %W{hydan decrypt --master-key #{key} --in random.dat.enc --out random.dat.dec --data-key #{data_key}}
+    system *decrypt_cmd
+    md5_before = `md5sum random.dat | awk '{print $1}'`
+    md5_after = `md5sum random.dat.dec | awk '{print $1}'`
+    puts "MD5 of plaintext: #{md5_before}"
+    puts "MD5 of decrypted file: #{md5_before}"
+    assert md5_before = md5_after
   end
 end
