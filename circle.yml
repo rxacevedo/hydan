@@ -25,4 +25,5 @@ deployment:
     branch: master
     commands:
       - docker login -e=$REGISTRY_EMAIL -u=$REGISTRY_USER -p=$REGISTRY_PASSWORD $REGISTRY_URL
-      - docker push $REGISTRY_URL/seibelsbi/docker-hydan
+      - docker tag $REGISTRY_URL/seibelsbi/docker-hydan:2.3 $REGISTRY_URL/seibelsbi/docker-hydan:latest
+      - docker push $REGISTRY_URL/seibelsbi/docker-hydan:latest
