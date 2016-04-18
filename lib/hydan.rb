@@ -16,14 +16,4 @@ require 'hydan/s3'
 require 'hydan/cli'
 require 'hydan/version'
 
-module Hydan
-  # TODO: Control when this runs, currently each time the module
-  # is loaded, the below code runs
-  unless ENV['AWS_ACCESS_KEY_ID'] && ENV['AWS_SECRET_ACCESS_KEY']
-    Aws.config.update(
-      credentials: Aws::SharedCredentials.new(
-        profile_name: ENV['AWS_DEFAULT_PROFILE']
-      )
-    )
-  end
-end
+module Hydan end
