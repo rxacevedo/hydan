@@ -23,6 +23,10 @@ Or install it yourself as:
 
     $ gem install hydan
 
+## Disclaimer
+
+Hydan is open-source software - **USE AT YOUR OWN RISK!** The authors and all affiliates assume no responsibility for issues encountered with the use of of this software.
+
 ## Usage
 
 ### Local text encryption
